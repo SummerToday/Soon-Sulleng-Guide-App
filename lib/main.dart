@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'Account/login.dart'; // login.dart 파일을 임포트
 
 void main() {
   runApp(const MyApp());
@@ -19,11 +20,11 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
-          textTheme: TextTheme(
+          textTheme: const TextTheme(
             bodyText2: TextStyle(fontFamily: 'Yangjin'),
           ),
         ),
-        home: const InitalPageWidget(),
+        home: const InitalPageWidget(), // 앱 시작 시 InitalPageWidget으로 이동.
       ),
     );
   }
@@ -50,6 +51,14 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     // 애니메이션 설정
     Animate.defaultDuration = 600.ms;
     Animate.defaultCurve = Curves.easeInOut;
+
+    // 1초 후에 LoginWidget으로 이동
+    Future.delayed(Duration(milliseconds: 1200), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginWidget()),
+      );
+    });
   }
 
   @override
@@ -105,6 +114,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
 class InitalPageModel extends ChangeNotifier {
   final FocusNode unfocusNode = FocusNode();
 
+  @override
   void dispose() {
     unfocusNode.dispose();
     super.dispose();
