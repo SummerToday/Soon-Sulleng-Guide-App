@@ -5,7 +5,7 @@ import 'auth2_login_model.dart';
 import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
-
+import 'create.dart';
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
 
@@ -359,9 +359,12 @@ class _LoginWidgetState extends State<LoginWidget>
                                   hoverColor: Colors.transparent,
                                   highlightColor: Colors.transparent,
                                   onTap: () async {
-                                    // 임시 회원가입 버튼 동작, 추후 백엔드 연동 필요
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('계정 생성하기 클릭됨')),
+                                    // 계정 생성 페이지로 이동
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const Auth2CreateWidget(),
+                                      ),
                                     );
                                   },
                                   child: RichText(
@@ -372,10 +375,13 @@ class _LoginWidgetState extends State<LoginWidget>
                                           style: theme.bodyMedium,
                                         ),
                                         TextSpan(
+
                                           text: '계정 생성하기',
+
                                           style: theme.bodyMedium.copyWith(
                                             color: theme.primaryColor,
                                             fontWeight: FontWeight.w600,
+
                                           ),
                                         ),
                                       ],

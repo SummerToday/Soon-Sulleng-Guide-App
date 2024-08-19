@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'Account/auth2_create_model.dart'; // auth2_create_model.dart 파일을 임포트
 import 'Account/login.dart'; // login.dart 파일을 임포트
 
 void main() {
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => InitalPageModel()),
+        ChangeNotifierProvider(create: (_) => Auth2CreateModel()), // Auth2CreateModel 추가
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -52,7 +54,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     Animate.defaultDuration = 600.ms;
     Animate.defaultCurve = Curves.easeInOut;
 
-    // 1초 후에 LoginWidget으로 이동
+    // 1.2초 후에 LoginWidget으로 이동
     Future.delayed(Duration(milliseconds: 1200), () {
       Navigator.pushReplacement(
         context,
