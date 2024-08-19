@@ -396,6 +396,36 @@ class _LoginWidgetState extends State<LoginWidget>
                               padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
                                 onPressed: () async {
+                                  // Email recovery page로 이동
+                                  // 추후에 email recovery 관련 페이지를 연결해야 합니다.
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('이메일 복구 클릭됨')),
+                                  );
+                                },
+                                text: '이메일이 생각이 안나시나요?',
+                                options: FFButtonOptions(
+                                  width: double.infinity,
+                                  height: 44,
+                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  color: theme.backgroundColor,
+                                  textStyle: theme.titleSmall.copyWith(
+                                    color: theme.primaryText,
+                                  ),
+                                  elevation: 0,
+                                  borderSide: BorderSide(
+                                    color: theme.primaryBackground,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  hoverColor: theme.primaryBackground,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                              child: FFButtonWidget(
+                                onPressed: () async {
                                   // ForgetPasswordWidget으로 이동
                                   Navigator.push(
                                     context,
