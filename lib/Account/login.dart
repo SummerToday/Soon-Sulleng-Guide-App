@@ -6,6 +6,8 @@ import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
 import 'create.dart';
+import 'forgotPassword.dart';
+
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
 
@@ -394,9 +396,12 @@ class _LoginWidgetState extends State<LoginWidget>
                               padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
                                 onPressed: () async {
-                                  // 임시 비밀번호 재설정 버튼 동작, 추후 백엔드 연동 필요
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('비밀번호를 잊으셨나요? 클릭됨')),
+                                  // ForgetPasswordWidget으로 이동
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const forgotPassword(),
+                                    ),
                                   );
                                 },
                                 text: '비밀번호를 잊으셨나요?',
