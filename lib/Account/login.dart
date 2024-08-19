@@ -7,6 +7,7 @@ import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
 import 'create.dart';
 import 'forgotPassword.dart';
+import 'ForgotEmail.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -396,10 +397,12 @@ class _LoginWidgetState extends State<LoginWidget>
                               padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
                                 onPressed: () async {
-                                  // Email recovery page로 이동
-                                  // 추후에 email recovery 관련 페이지를 연결해야 합니다.
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('이메일 복구 클릭됨')),
+                                  // ForgotEmail 페이지로 이동
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ForgotEmail(),
+                                    ),
                                   );
                                 },
                                 text: '이메일이 생각이 안나시나요?',
@@ -422,6 +425,7 @@ class _LoginWidgetState extends State<LoginWidget>
                                 ),
                               ),
                             ),
+
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
