@@ -93,6 +93,7 @@ class _forgotPasswordState extends State<forgotPassword>
                               obscureText: false,
                               decoration: InputDecoration(
                                 labelText: '이름',
+                                hintText: '홍길동',
                                 labelStyle: const TextStyle(
                                   fontFamily: 'Yangjin',
                                   letterSpacing: 0,
@@ -155,7 +156,7 @@ class _forgotPasswordState extends State<forgotPassword>
                                   fontFamily: 'Yangjin',
                                   letterSpacing: 0,
                                 ),
-                                hintText: '00000000',
+                                hintText: '8자리',
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Theme.of(context)
