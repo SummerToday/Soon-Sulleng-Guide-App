@@ -106,22 +106,23 @@ class _LoginWidgetState extends State<LoginWidget>
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(height: 70), // 상단 여백 추가
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0, 70, 0, 32),
-                  child: Container(
-                    width: 200,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                  padding: EdgeInsets.only(top: 10, bottom: 30),
+                  child: Text(
+                    '설마 아직도 안 먹어 봤어!?',
+                    textAlign: TextAlign.center,
+                    style: theme.displaySmall.copyWith(
+                      fontSize: 30, // 크기 조정
+                      color: Colors.white, // 흰색 텍스트
                     ),
-                    alignment: AlignmentDirectional(0, 0),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Container(
                     width: double.infinity,
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       maxWidth: 570,
                     ),
                     decoration: BoxDecoration(
@@ -129,8 +130,8 @@ class _LoginWidgetState extends State<LoginWidget>
                       boxShadow: [
                         BoxShadow(
                           blurRadius: 4,
-                          color: Color(0x33000000),
-                          offset: Offset(0, 2),
+                          color: const Color(0x33000000),
+                          offset: const Offset(0, 2),
                         )
                       ],
                       borderRadius: BorderRadius.circular(12),
@@ -138,7 +139,7 @@ class _LoginWidgetState extends State<LoginWidget>
                     child: Align(
                       alignment: AlignmentDirectional(0, 0),
                       child: Padding(
-                        padding: EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(32),
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,25 +147,27 @@ class _LoginWidgetState extends State<LoginWidget>
                             Align(
                               alignment: AlignmentDirectional(0, 0),
                               child: Padding(
-                                padding: EdgeInsets.all(22),
+                                padding: EdgeInsets.only(top: 0, bottom: 40),
                                 child: Text(
                                   '순슐랭가이드',
                                   textAlign: TextAlign.center,
                                   style: theme.displaySmall.copyWith(
-                                    color: Color(0xFF0367A6),
+                                    fontSize: 40, // 크기 늘리기
+                                    color: const Color(0xFF0367A6),
                                   ),
                                 ),
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  0, 0, 0, 16),
                               child: Container(
                                 width: double.infinity,
                                 child: TextFormField(
                                   controller: _model.emailAddressTextController,
                                   focusNode: _model.emailAddressFocusNode,
                                   autofocus: true,
-                                  autofillHints: [AutofillHints.email],
+                                  autofillHints: const [AutofillHints.email],
                                   obscureText: false,
                                   decoration: InputDecoration(
                                     labelText: 'Email',
@@ -213,14 +216,15 @@ class _LoginWidgetState extends State<LoginWidget>
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  0, 0, 0, 16),
                               child: Container(
                                 width: double.infinity,
                                 child: TextFormField(
                                   controller: _model.passwordTextController,
                                   focusNode: _model.passwordFocusNode,
                                   autofocus: true,
-                                  autofillHints: [AutofillHints.password],
+                                  autofillHints: const [AutofillHints.password],
                                   obscureText: !_model.passwordVisibility,
                                   decoration: InputDecoration(
                                     labelText: 'Password',
@@ -257,8 +261,8 @@ class _LoginWidgetState extends State<LoginWidget>
                                     fillColor: theme.primaryBackground,
                                     suffixIcon: InkWell(
                                       onTap: () => setState(
-                                            () => _model.passwordVisibility =
-                                        !_model.passwordVisibility,
+                                        () => _model.passwordVisibility =
+                                            !_model.passwordVisibility,
                                       ),
                                       focusNode: FocusNode(skipTraversal: true),
                                       child: Icon(
@@ -282,24 +286,28 @@ class _LoginWidgetState extends State<LoginWidget>
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  0, 0, 0, 16),
                               child: FFButtonWidget(
                                 onPressed: () async {
                                   // 임시 로그인 버튼 동작, 추후 백엔드 연동 필요
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('로그인 클릭됨')),
+                                    const SnackBar(content: Text('로그인 클릭됨')),
                                   );
                                 },
                                 text: '로그인하기',
                                 options: FFButtonOptions(
                                   width: double.infinity,
                                   height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
+                                  // 여기서 const 키워드 제거
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
                                   color: theme.secondaryColor,
                                   textStyle: theme.titleSmall,
                                   elevation: 3,
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: Colors.transparent,
                                     width: 1,
                                   ),
@@ -310,7 +318,8 @@ class _LoginWidgetState extends State<LoginWidget>
                             Align(
                               alignment: AlignmentDirectional(0, 0),
                               child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    16, 0, 16, 24),
                                 child: Text(
                                   'or',
                                   textAlign: TextAlign.center,
@@ -319,16 +328,18 @@ class _LoginWidgetState extends State<LoginWidget>
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
                               child: FFButtonWidget(
                                 onPressed: () async {
                                   // 임시 구글 로그인 버튼 동작, 추후 백엔드 연동 필요
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('구글 계정으로 시작하기 클릭됨')),
+                                    const SnackBar(
+                                        content: Text('구글 계정으로 시작하기 클릭됨')),
                                   );
                                 },
                                 text: '구글 계정으로 시작하기',
-                                icon: FaIcon(
+                                icon: const FaIcon(
                                   FontAwesomeIcons.google,
                                   color: Colors.black,
                                   size: 20,
@@ -336,8 +347,10 @@ class _LoginWidgetState extends State<LoginWidget>
                                 options: FFButtonOptions(
                                   width: double.infinity,
                                   height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
                                   color: theme.secondaryBackground,
                                   textStyle: theme.titleSmall.copyWith(
                                     color: theme.primaryText,
@@ -355,7 +368,8 @@ class _LoginWidgetState extends State<LoginWidget>
                             Align(
                               alignment: AlignmentDirectional(0, 0),
                               child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(0, 12, 0, 12),
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    0, 12, 0, 12),
                                 child: InkWell(
                                   splashColor: Colors.transparent,
                                   focusColor: Colors.transparent,
@@ -366,7 +380,8 @@ class _LoginWidgetState extends State<LoginWidget>
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const Auth2CreateWidget(),
+                                        builder: (context) =>
+                                            const Auth2CreateWidget(),
                                       ),
                                     );
                                   },
@@ -378,13 +393,10 @@ class _LoginWidgetState extends State<LoginWidget>
                                           style: theme.bodyMedium,
                                         ),
                                         TextSpan(
-
                                           text: '계정 생성하기',
-
                                           style: theme.bodyMedium.copyWith(
                                             color: theme.primaryColor,
                                             fontWeight: FontWeight.w600,
-
                                           ),
                                         ),
                                       ],
@@ -394,7 +406,8 @@ class _LoginWidgetState extends State<LoginWidget>
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
                                 onPressed: () async {
                                   // ForgotEmail 페이지로 이동
@@ -409,8 +422,10 @@ class _LoginWidgetState extends State<LoginWidget>
                                 options: FFButtonOptions(
                                   width: double.infinity,
                                   height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
                                   color: theme.backgroundColor,
                                   textStyle: theme.titleSmall.copyWith(
                                     color: theme.primaryText,
@@ -425,16 +440,17 @@ class _LoginWidgetState extends State<LoginWidget>
                                 ),
                               ),
                             ),
-
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                               child: FFButtonWidget(
                                 onPressed: () async {
                                   // ForgetPasswordWidget으로 이동
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const forgotPassword(),
+                                      builder: (context) =>
+                                          const forgotPassword(),
                                     ),
                                   );
                                 },
@@ -442,8 +458,10 @@ class _LoginWidgetState extends State<LoginWidget>
                                 options: FFButtonOptions(
                                   width: double.infinity,
                                   height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                      0, 0, 0, 0),
                                   color: theme.backgroundColor,
                                   textStyle: theme.titleSmall.copyWith(
                                     color: theme.primaryText,
