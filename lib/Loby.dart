@@ -196,26 +196,92 @@ class Loby extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              IconButton(
-                icon: Icon(Icons.favorite_rounded,
-                    color: Color(0xFFF25592), size: 40),
-                onPressed: () {
-                  print('좋아요 버튼 클릭됨');
+              InkWell(
+                onTap: () {
+                  print('저장 목록 클릭됨');
                 },
+                borderRadius: BorderRadius.circular(50),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        color: Color(0xFFF25592),
+                        size: 40,
+                      ),
+                    ),
+                    Text(
+                      '저장 목록',
+                      style: TextStyle(
+                        fontFamily: 'Yangjin',
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              IconButton(
-                icon: Icon(Icons.border_color_outlined,
-                    color: Colors.black, size: 40),
-                onPressed: () {
-                  print('작성 버튼 클릭됨');
+              InkWell(
+                onTap: () {
+                  print('평가 작성 클릭됨');
                 },
+                borderRadius: BorderRadius.circular(50),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.border_color_outlined,
+                        color: Colors.black,
+                        size: 40,
+                      ),
+                    ),
+                    Text(
+                      '평가 작성',
+                      style: TextStyle(
+                        fontFamily: 'Yangjin',
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              IconButton(
-                icon: Icon(Icons.account_circle,
-                    color: Color(0xFF90F86D), size: 40),
-                onPressed: () {
-                  print('프로필 버튼 클릭됨');
+              InkWell(
+                onTap: () {
+                  print('계정 정보 클릭됨');
                 },
+                borderRadius: BorderRadius.circular(50),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.account_circle,
+                        color: Color(0xFF90F86D),
+                        size: 40,
+                      ),
+                    ),
+                    Text(
+                      '계정 정보',
+                      style: TextStyle(
+                        fontFamily: 'Yangjin',
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -223,7 +289,6 @@ class Loby extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildFoodItem(
       BuildContext context, String name, String imagePath, String price) {
     return GestureDetector(
