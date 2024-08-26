@@ -8,6 +8,7 @@ import 'flutter_flow_animations.dart';
 import 'create.dart';
 import 'forgotPassword.dart';
 import 'ForgotEmail.dart';
+import '../Loby.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -290,9 +291,10 @@ class _LoginWidgetState extends State<LoginWidget>
                                   0, 0, 0, 16),
                               child: FFButtonWidget(
                                 onPressed: () async {
-                                  // 임시 로그인 버튼 동작, 추후 백엔드 연동 필요
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('로그인 클릭됨')),
+                                  // 로그인 버튼 클릭 시 Loby 화면으로 네비게이션
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Loby()),
                                   );
                                 },
                                 text: '로그인하기',
