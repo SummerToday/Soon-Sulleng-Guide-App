@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'Account/auth2_create_model.dart'; // auth2_create_model.dart 파일을 임포트
-import 'Account/login.dart'; // login.dart 파일을 임포트
+import 'Account/login.dart'; // login.dart 파일을 임포트.
 
 void main() {
   runApp(const MyApp());
