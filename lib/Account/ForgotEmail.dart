@@ -26,7 +26,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                 '이메일 찾기',
                 style: TextStyle(
                   fontFamily: 'Yangjin',
-                  color: Colors.white, // 제목을 검은색으로 설정
+                  color: Colors.white, // 제목을 흰색으로 설정
                   fontSize: 40,
                   letterSpacing: 0,
                 ),
@@ -69,7 +69,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -82,7 +82,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                         fontFamily: 'Yangjin',
                         letterSpacing: 0,
                       ),
-                      cursorColor: Theme.of(context).primaryColor,
+                      cursorColor: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -102,7 +102,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -115,7 +115,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                         fontFamily: 'Yangjin',
                         letterSpacing: 0,
                       ),
-                      cursorColor: Theme.of(context).primaryColor,
+                      cursorColor: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 16),
                     Center(
@@ -127,7 +127,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          primary: const Color(0xFF787DEA),
+                          backgroundColor: const Color(0xFF787DEA), // primary 대신 backgroundColor
                           padding: const EdgeInsets.symmetric(
                               horizontal: 32, vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -152,7 +152,7 @@ class _ForgotEmailState extends State<ForgotEmail> {
                           '이메일 힌트: $recoveredEmail',
                           style: TextStyle(
                             fontFamily: 'Yangjin',
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                             fontSize: 16,
                           ),
                         ),

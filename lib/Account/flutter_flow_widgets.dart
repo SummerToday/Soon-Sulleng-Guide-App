@@ -47,8 +47,8 @@ class FFButtonWidget extends StatelessWidget {
       icon: icon ?? Container(),
       label: Text(text, style: options.textStyle),
       style: ElevatedButton.styleFrom(
-        primary: options.color,
-        onPrimary: options.hoverColor,
+        backgroundColor: options.color, // primary 대신 backgroundColor 사용
+        foregroundColor: options.hoverColor, // onPrimary 대신 foregroundColor 사용
         minimumSize: Size(options.width, options.height),
         padding: options.padding,
         shape: RoundedRectangleBorder(

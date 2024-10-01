@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           textTheme: const TextTheme(
-            bodyText2: TextStyle(fontFamily: 'Yangjin'),
+            bodyLarge: TextStyle(fontFamily: 'Yangjin'), // Flutter 3.24.3에서 bodyText2 -> bodyLarge로 변경
           ),
         ),
         home: const InitalPageWidget(), // 앱 시작 시 InitalPageWidget으로 이동.
