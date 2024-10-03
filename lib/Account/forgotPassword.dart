@@ -19,10 +19,30 @@ class _ForgotPasswordState extends State<ForgotPassword>
   void initState() {
     super.initState();
     _model = context.read<Auth2CreateModel>();
+
+    // TextEditingController와 FocusNode 초기화
+    _model.emailAddressTextController1 = TextEditingController();
+    _model.emailAddressFocusNode1 = FocusNode();
+
+    _model.emailAddressTextController2 = TextEditingController();
+    _model.emailAddressFocusNode2 = FocusNode();
+
+    _model.emailAddressTextController3 = TextEditingController();
+    _model.emailAddressFocusNode3 = FocusNode();
   }
 
   @override
   void dispose() {
+    // TextEditingController와 FocusNode를 명시적으로 해제
+    _model.emailAddressTextController1.dispose();
+    _model.emailAddressFocusNode1.dispose();
+
+    _model.emailAddressTextController2.dispose();
+    _model.emailAddressFocusNode2.dispose();
+
+    _model.emailAddressTextController3.dispose();
+    _model.emailAddressFocusNode3.dispose();
+
     _model.dispose();
     super.dispose();
   }

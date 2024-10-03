@@ -18,11 +18,43 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
   @override
   void initState() {
     super.initState();
+
+    // 모델 가져오기
     _model = context.read<Auth2CreateModel>();
+
+    // TextEditingController와 FocusNode를 명시적으로 초기화
+    _model.emailAddressTextController1 = TextEditingController();
+    _model.passwordTextController1 = TextEditingController();
+    _model.passwordTextController2 = TextEditingController();
+    _model.emailAddressTextController2 = TextEditingController();
+    _model.emailAddressTextController3 = TextEditingController();
+    _model.emailAddressTextController4 = TextEditingController();
+
+    _model.emailAddressFocusNode1 = FocusNode();
+    _model.passwordFocusNode1 = FocusNode();
+    _model.passwordFocusNode2 = FocusNode();
+    _model.emailAddressFocusNode2 = FocusNode();
+    _model.emailAddressFocusNode3 = FocusNode();
+    _model.emailAddressFocusNode4 = FocusNode();
   }
 
   @override
   void dispose() {
+    // 모든 TextEditingController와 FocusNode를 명시적으로 해제
+    _model.emailAddressTextController1.dispose();
+    _model.passwordTextController1.dispose();
+    _model.passwordTextController2.dispose();
+    _model.emailAddressTextController2.dispose();
+    _model.emailAddressTextController3.dispose();
+    _model.emailAddressTextController4.dispose();
+
+    _model.emailAddressFocusNode1.dispose();
+    _model.passwordFocusNode1.dispose();
+    _model.passwordFocusNode2.dispose();
+    _model.emailAddressFocusNode2.dispose();
+    _model.emailAddressFocusNode3.dispose();
+    _model.emailAddressFocusNode4.dispose();
+
     _model.dispose();
     super.dispose();
   }
@@ -538,6 +570,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                           const SnackBar(
                                               content:
                                               Text('계정이 성공적으로 생성되었습니다.')),
+
                                         );
                                       }
                                     },
@@ -558,7 +591,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                           ?.copyWith(
                                         fontFamily: 'Yangjin',
                                         letterSpacing: 0,
-                                        color: Colors.white, // 색상 추가
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ),
