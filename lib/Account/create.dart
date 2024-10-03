@@ -35,6 +35,16 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
         key: scaffoldKey,
         resizeToAvoidBottomInset: true, // 키보드가 올라올 때 화면 조정
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0367A6), // AppBar 배경색
+          elevation: 0, // 그림자 제거
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context); // 뒤로가기 동작
+            },
+          ),
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             // 스크롤 가능하게 수정
@@ -116,7 +126,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary, // 수정됨
+                                            .primary, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -125,7 +135,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .error, // 수정됨
+                                            .error, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -134,7 +144,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .error, // 수정됨
+                                            .error, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -151,7 +161,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                   keyboardType: TextInputType.emailAddress,
                                   cursorColor: Theme.of(context)
                                       .colorScheme
-                                      .primary, // 수정됨
+                                      .primary, // 변경됨
                                   validator: _model
                                       .emailAddressTextController1Validator,
                                 ),
@@ -183,7 +193,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary, // 수정됨
+                                            .primary, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -192,7 +202,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .error, // 수정됨
+                                            .error, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -201,7 +211,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       borderSide: BorderSide(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .error, // 수정됨
+                                            .error, // 변경됨
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
@@ -230,12 +240,290 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                   ),
                                   cursorColor: Theme.of(context)
                                       .colorScheme
-                                      .primary, // 수정됨
+                                      .primary, // 변경됨
                                   validator:
                                   _model.passwordTextController1Validator,
                                 ),
                               ),
-                              // 추가 필드들도 같은 방식으로 수정 가능
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: TextFormField(
+                                  controller: _model.passwordTextController2,
+                                  focusNode: _model.passwordFocusNode2,
+                                  autofocus: true,
+                                  obscureText: !_model.passwordVisibility2,
+                                  decoration: InputDecoration(
+                                    labelText: '비밀번호 확인',
+                                    labelStyle: const TextStyle(
+                                      fontFamily: 'Yangjin',
+                                      letterSpacing: 0,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .inputDecorationTheme
+                                        .fillColor,
+                                    suffixIcon: InkWell(
+                                      onTap: () => setState(() {
+                                        _model.togglePasswordVisibility2();
+                                      }),
+                                      focusNode: FocusNode(skipTraversal: true),
+                                      child: Icon(
+                                        _model.passwordVisibility2
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                        color: Theme.of(context).disabledColor,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                  style: const TextStyle(
+                                    fontFamily: 'Yangjin',
+                                    letterSpacing: 0,
+                                  ),
+                                  cursorColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary, // 변경됨
+                                  validator:
+                                  _model.passwordTextController2Validator,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: TextFormField(
+                                  controller: _model.emailAddressTextController2,
+                                  focusNode: _model.emailAddressFocusNode2,
+                                  autofocus: true,
+                                  autofillHints: [AutofillHints.name],
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    labelText: '이름',
+                                    labelStyle: const TextStyle(
+                                      fontFamily: 'Yangjin',
+                                      letterSpacing: 0,
+                                    ),
+                                    hintText: '홍길동',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .inputDecorationTheme
+                                        .fillColor,
+                                  ),
+                                  style: const TextStyle(
+                                    fontFamily: 'Yangjin',
+                                    letterSpacing: 0,
+                                  ),
+                                  cursorColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary, // 변경됨
+                                  validator:
+                                  _model.emailAddressTextController2Validator,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: TextFormField(
+                                  controller: _model.emailAddressTextController3,
+                                  focusNode: _model.emailAddressFocusNode3,
+                                  autofocus: true,
+                                  autofillHints: [AutofillHints.birthday],
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    labelText: '생년월일',
+                                    labelStyle: const TextStyle(
+                                      fontFamily: 'Yangjin',
+                                      letterSpacing: 0,
+                                    ),
+                                    hintText: '19990930',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .inputDecorationTheme
+                                        .fillColor,
+                                  ),
+                                  style: const TextStyle(
+                                    fontFamily: 'Yangjin',
+                                    letterSpacing: 0,
+                                  ),
+                                  cursorColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary, // 변경됨
+                                  validator:
+                                  _model.emailAddressTextController3Validator,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: TextFormField(
+                                  controller: _model.emailAddressTextController4,
+                                  focusNode: _model.emailAddressFocusNode4,
+                                  autofocus: true,
+                                  autofillHints: [AutofillHints.nickname],
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    labelText: '닉네임',
+                                    labelStyle: const TextStyle(
+                                      fontFamily: 'Yangjin',
+                                      letterSpacing: 0,
+                                    ),
+                                    hintText: '순슐랭가이드',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error, // 변경됨
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .inputDecorationTheme
+                                        .fillColor,
+                                  ),
+                                  style: const TextStyle(
+                                    fontFamily: 'Yangjin',
+                                    letterSpacing: 0,
+                                  ),
+                                  cursorColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary, // 변경됨
+                                  validator:
+                                  _model.emailAddressTextController4Validator,
+                                ),
+                              ),
                               Align(
                                 alignment: AlignmentDirectional.center,
                                 child: Padding(
@@ -254,8 +542,7 @@ class _Auth2CreateWidgetState extends State<Auth2CreateWidget>
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                      const Color(0xFF787DEA), // primary -> backgroundColor로 변경
+                                      backgroundColor: const Color(0xFF787DEA),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 32, vertical: 16),
                                       shape: RoundedRectangleBorder(

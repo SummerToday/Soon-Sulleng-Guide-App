@@ -33,6 +33,16 @@ class _ForgotPasswordState extends State<ForgotPassword>
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: scaffoldKey,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0367A6),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context); // 뒤로가기 동작
+            },
+          ),
+        ),
         backgroundColor: const Color(0xFF0367A6),
         body: Container(
           width: double.infinity,

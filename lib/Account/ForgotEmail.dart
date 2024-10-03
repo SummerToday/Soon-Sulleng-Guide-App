@@ -15,6 +15,16 @@ class _ForgotEmailState extends State<ForgotEmail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0367A6),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context); // 뒤로가기 동작
+          },
+        ),
+      ),
       backgroundColor: const Color(0xFF0367A6),
       body: Center(
         child: Padding(
