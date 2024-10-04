@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => Auth2CreateModel()), // Auth2CreateModel 추가
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false, // 디버그 배지 제거
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
