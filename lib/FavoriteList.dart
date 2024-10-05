@@ -1,45 +1,153 @@
 import 'package:flutter/material.dart';
 
-class FavoriteListScreen extends StatelessWidget {
-  // 예시로 찜한 항목 리스트
-  final List<String> favoriteItems;
-
-  FavoriteListScreen({required this.favoriteItems});
-
+class FavoriteList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('찜 목록', style: TextStyle(fontFamily: 'Yangjin')),
-        backgroundColor: Color(0xFF0367A6), // 상단바 색상
-      ),
-      body: favoriteItems.isEmpty
-          ? Center(
-        child: Text(
-          '찜한 항목이 없습니다.',
-          style: TextStyle(fontFamily: 'Yangjin', fontSize: 18),
-        ),
-      )
-          : ListView.builder(
-        itemCount: favoriteItems.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: Icon(Icons.favorite, color: Colors.red), // 찜 아이콘
-            title: Text(
-              favoriteItems[index],
-              style: TextStyle(
-                fontFamily: 'Yangjin',
-                fontSize: 18,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header with "순슐랭가이드" and Icon (same as in Home screen)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '순슐랭가이드',
+                        style: TextStyle(
+                          color: Color(0xFF0367A6),
+                          fontSize: 30,
+                          fontFamily: 'Yangjin',
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/swapped_dishs.png', // 아이콘 경로
+                          width: 75,
+                          height: 57,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            onTap: () {
-              // 항목 클릭 시 동작 설정 가능
-              print('${favoriteItems[index]} 선택됨');
-            },
-          );
-        },
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                '내가 찜한 음식들',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontFamily: 'Yangjin',
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            // Favorite Items List
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: ListView(
+                  children: [
+                    _buildFavoriteItem(
+                      context,
+                      '양념치킨',
+                      'assets/images/seasoned_chicken.jpg',
+                      '₩18,000 / 멕켄치킨',
+                    ),
+                    _buildFavoriteItem(
+                      context,
+                      '딸기 눈꽃빙수',
+                      'assets/images/딸기 눈꽃빙수.jpg',
+                      '₩28,000 / GOGOSS COFFEE',
+                    ),
+                    // 여기에 추가적으로 찜한 목록을 추가할 수 있음
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFavoriteItem(BuildContext context, String name, String imagePath, String price) {
+    return GestureDetector(
+      onTap: () {
+        print('$name 클릭됨');
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+              child: Image.asset(
+                imagePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Yangjin',
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      price,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontFamily: 'Yangjin',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: () {
+                print('$name 삭제 클릭됨');
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
