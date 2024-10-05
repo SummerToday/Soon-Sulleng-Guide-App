@@ -9,10 +9,18 @@ class _LobyState extends State<Loby> {
   List<bool> _isLikedFood = [false, false, false, false];
   List<bool> _isLikedDessert = [false, false, false, false];
 
+  int _selectedIndex = 0; // 선택된 탭의 인덱스를 저장하는 변수, 기본은 홈(0)
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // 선택된 인덱스를 업데이트
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF0367A6),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -29,7 +37,7 @@ class _LobyState extends State<Loby> {
                       Text(
                         '순슐랭가이드',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF0367A6),
                           fontSize: 30,
                           fontFamily: 'Yangjin',
                         ),
@@ -37,7 +45,7 @@ class _LobyState extends State<Loby> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.asset(
-                          'assets/images/dishes-297268_1280.png',
+                          'assets/images/swapped_dishs.png',
                           width: 75,
                           height: 57,
                           fit: BoxFit.cover,
@@ -110,7 +118,7 @@ class _LobyState extends State<Loby> {
                       child: Text(
                         '음식',
                         style: TextStyle(
-                          color: Color(0xFFF4F2BB),
+                          color: Colors.black,
                           fontSize: 25,
                           fontFamily: 'Yangjin',
                         ),
@@ -186,7 +194,7 @@ class _LobyState extends State<Loby> {
                       child: Text(
                         '디저트',
                         style: TextStyle(
-                          color: Color(0xFFF4F2BB),
+                          color: Colors.black,
                           fontSize: 25,
                           fontFamily: 'Yangjin',
                         ),
@@ -273,17 +281,24 @@ class _LobyState extends State<Loby> {
           ),
         ),
         child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex, // 선택된 탭 인덱스
+          onTap: _onItemTapped, // 클릭 시 호출되는 함수
           items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_rounded, size: 40, color: Colors.white),
-              label: '찜 목록',
+              icon: Icon(Icons.home, size: 40, color: _selectedIndex == 0 ? Color(0xFF0367A6) : Colors.grey),
+              label: '홈',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.border_color_outlined, size: 40, color: Colors.white),
-              label: '평가 작성',
+              icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 1 ? Color(0xFF0367A6) : Colors.grey),
+              label: '찜',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, size: 40, color: Colors.white),
+              icon: Icon(Icons.border_color_outlined, size: 40, color: _selectedIndex == 2 ? Color(0xFF0367A6) : Colors.grey),
+              label: '평가하기',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
               label: '계정 정보',
             ),
           ],
@@ -295,9 +310,9 @@ class _LobyState extends State<Loby> {
             fontFamily: 'Yangjin', // 글씨체 변경
             fontSize: 14,
           ),
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white,
-          backgroundColor: Color(0xFF0367A6), // 배경은 Container에서 처리
+          selectedItemColor: Color(0xFF0367A6), // 선택된 아이템 색상
+          unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
+          backgroundColor: Colors.white, // 배경은 Container에서 처리
         ),
       ),
     );

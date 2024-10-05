@@ -63,11 +63,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/dishes-297268_1280.png
-    - assets/images/seasoned_chicken.jpg
-    - assets/images/platter_jjajangmyeon.jpg
-    - assets/images/딸기 눈꽃빙수.jpg
-    - assets/images/딸기 쥬얼리 벨벳 밀크티.jpg
+    - assets/images/
 
   fonts:
     - family: Yangjin

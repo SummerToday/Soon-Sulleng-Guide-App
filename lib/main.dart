@@ -97,7 +97,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
             Align(
               alignment: const AlignmentDirectional(0, -0.25),
               child: Text(
-                '순슐랭 가이드',
+                '순슐랭가이드',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Yangjin',

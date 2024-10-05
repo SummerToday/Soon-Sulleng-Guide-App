@@ -8,7 +8,7 @@ import 'flutter_flow_animations.dart';
 import 'create.dart';
 import 'forgotPassword.dart';
 import 'ForgotEmail.dart';
-import '../home.dart';
+import '../Home.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
