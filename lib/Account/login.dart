@@ -5,10 +5,6 @@ import 'auth2_login_model.dart';
 import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
-import 'create.dart';
-import 'forgotPassword.dart';
-import 'ForgotEmail.dart';
-import '../Home.dart';
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -30,12 +26,6 @@ class _LoginWidgetState extends State<LoginWidget>
     super.initState();
     _model = Auth2LoginModel();
 
-    _model.emailAddressTextController ??= TextEditingController();
-    _model.emailAddressFocusNode ??= FocusNode();
-
-    _model.passwordTextController ??= TextEditingController();
-    _model.passwordFocusNode ??= FocusNode();
-
     animationsMap.addAll({
       'containerOnPageLoadAnimation': AnimationInfo(
         trigger: AnimationTrigger.onPageLoad,
@@ -55,20 +45,6 @@ class _LoginWidgetState extends State<LoginWidget>
             begin: Offset(0.0, 140.0),
             end: Offset(0.0, 0.0),
           ),
-          ScaleEffect(
-            curve: Curves.easeInOut,
-            delay: 0.ms,
-            duration: 300.ms,
-            begin: Offset(0.9, 0.9),
-            end: Offset(1.0, 1.0),
-          ),
-          RotateEffect(
-            curve: Curves.easeInOut,
-            delay: 0.ms,
-            duration: 300.ms,
-            begin: -0.349,
-            end: 0,
-          ),
         ],
       ),
     });
@@ -84,38 +60,47 @@ class _LoginWidgetState extends State<LoginWidget>
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
 
-    return GestureDetector(
-      onTap: () => _model.unfocusNode.canRequestFocus
-          ? FocusScope.of(context).requestFocus(_model.unfocusNode)
-          : FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: theme.secondaryBackground,
-        body: Container(
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [theme.primaryColor, theme.primaryColor],
-              stops: [0, 1],
-              begin: AlignmentDirectional(0.87, -1),
-              end: AlignmentDirectional(-0.87, 1),
-            ),
+    return Scaffold(
+      key: scaffoldKey,
+      backgroundColor: theme.secondaryBackground,
+      body: Container(
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.primaryColor, theme.primaryColor],
+            stops: [0, 1],
+            begin: AlignmentDirectional(0.87, -1),
+            end: AlignmentDirectional(-0.87, 1),
           ),
-          alignment: AlignmentDirectional(0, -1),
+        ),
+        alignment: AlignmentDirectional(0, -1),
+        child: Align(
+          alignment: Alignment.topCenter,  // 컴포넌트들을 위쪽으로 올리기 위해 Align 사용
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 70), // 상단 여백 추가
+                const SizedBox(height: 110), // 상단 여백
+                // 이미지 추가
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Image.asset(
+                    'assets/images/dishes-297268_1280.png',
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                // "설마 아직도 안 먹어 봤어!?" 텍스트
                 Padding(
                   padding: EdgeInsets.only(top: 10, bottom: 30),
                   child: Text(
                     '설마 아직도 안 먹어 봤어!?',
                     textAlign: TextAlign.center,
                     style: theme.displaySmall.copyWith(
-                      fontSize: 30, // 크기 조정
-                      color: Colors.white, // 흰색 텍스트
+                      fontSize: 35,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -133,7 +118,7 @@ class _LoginWidgetState extends State<LoginWidget>
                           blurRadius: 4,
                           color: const Color(0x33000000),
                           offset: const Offset(0, 2),
-                        )
+                        ),
                       ],
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -142,335 +127,47 @@ class _LoginWidgetState extends State<LoginWidget>
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Align(
-                              alignment: AlignmentDirectional(0, 0),
-                              child: Padding(
-                                padding: EdgeInsets.only(top: 0, bottom: 40),
-                                child: Text(
-                                  '순슐랭가이드',
-                                  textAlign: TextAlign.center,
-                                  style: theme.displaySmall.copyWith(
-                                    fontSize: 40, // 크기 늘리기
-                                    color: const Color(0xFF0367A6),
-                                  ),
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 40),
+                              child: Text(
+                                '순슐랭가이드',
+                                textAlign: TextAlign.center,
+                                style: theme.displaySmall.copyWith(
+                                  fontSize: 40,
+                                  color: const Color(0xFF0367A6),
                                 ),
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  0, 0, 0, 16),
-                              child: Container(
-                                width: double.infinity,
-                                child: TextFormField(
-                                  controller: _model.emailAddressTextController,
-                                  focusNode: _model.emailAddressFocusNode,
-                                  autofocus: true,
-                                  autofillHints: const [AutofillHints.email],
-                                  obscureText: false,
-                                  decoration: InputDecoration(
-                                    labelText: 'Email',
-                                    labelStyle: theme.labelLarge,
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.alternate,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.primaryColor,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    errorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.error,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.error,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    filled: true,
-                                    fillColor: theme.primaryBackground,
-                                  ),
-                                  style: theme.bodyLarge,
-                                  keyboardType: TextInputType.emailAddress,
-                                  cursorColor: theme.primaryColor,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Email을 입력해주세요.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  0, 0, 0, 16),
-                              child: Container(
-                                width: double.infinity,
-                                child: TextFormField(
-                                  controller: _model.passwordTextController,
-                                  focusNode: _model.passwordFocusNode,
-                                  autofocus: true,
-                                  autofillHints: const [AutofillHints.password],
-                                  obscureText: !_model.passwordVisibility,
-                                  decoration: InputDecoration(
-                                    labelText: 'Password',
-                                    labelStyle: theme.labelLarge,
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.alternate,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.primaryColor,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    errorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.error,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: theme.error,
-                                        width: 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    filled: true,
-                                    fillColor: theme.primaryBackground,
-                                    suffixIcon: InkWell(
-                                      onTap: () => setState(
-                                        () => _model.passwordVisibility =
-                                            !_model.passwordVisibility,
-                                      ),
-                                      focusNode: FocusNode(skipTraversal: true),
-                                      child: Icon(
-                                        _model.passwordVisibility
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                        color: theme.secondaryText,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ),
-                                  style: theme.bodyLarge,
-                                  cursorColor: theme.primaryColor,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Password를 입력해주세요.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  0, 0, 0, 16),
+                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
                               child: FFButtonWidget(
                                 onPressed: () async {
-                                  // 로그인 버튼 클릭 시 Loby 화면으로 네비게이션
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => Loby()),
-                                  );
-                                },
-                                text: '로그인하기',
-                                options: FFButtonOptions(
-                                  width: double.infinity,
-                                  height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  // 여기서 const 키워드 제거
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  color: theme.secondaryColor,
-                                  textStyle: theme.titleSmall,
-                                  elevation: 3,
-                                  borderSide: const BorderSide(
-                                    color: Colors.transparent,
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional(0, 0),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16, 0, 16, 24),
-                                child: Text(
-                                  'or',
-                                  textAlign: TextAlign.center,
-                                  style: theme.labelMedium,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
-                              child: FFButtonWidget(
-                                onPressed: () async {
-                                  // 임시 구글 로그인 버튼 동작, 추후 백엔드 연동 필요
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('구글 계정으로 시작하기 클릭됨')),
+                                    const SnackBar(content: Text('구글 계정으로 시작하기 클릭됨')),
                                   );
                                 },
                                 text: '구글 계정으로 시작하기',
                                 icon: const FaIcon(
                                   FontAwesomeIcons.google,
                                   color: Colors.black,
-                                  size: 20,
+                                  size: 30,
                                 ),
                                 options: FFButtonOptions(
-                                  width: double.infinity,
-                                  height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
+                                  width: double.infinity,  // 너비를 화면에 맞게 설정 (또는 특정 값으로 변경 가능)
+                                  height: 60,  // 높이를 기존보다 늘림 (기존 44에서 60으로)
+                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
                                   color: theme.secondaryBackground,
                                   textStyle: theme.titleSmall.copyWith(
                                     color: theme.primaryText,
+                                    fontSize: 20,  // 폰트 크기를 18로 증가시킴
                                   ),
                                   elevation: 0,
                                   borderSide: BorderSide(
                                     color: theme.alternate,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  hoverColor: theme.primaryBackground,
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional(0, 0),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0, 12, 0, 12),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    // 계정 생성 페이지로 이동
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const Auth2CreateWidget(),
-                                      ),
-                                    );
-                                  },
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: '처음이신가요? ',
-                                          style: theme.bodyMedium,
-                                        ),
-                                        TextSpan(
-                                          text: '계정 생성하기',
-                                          style: theme.bodyMedium.copyWith(
-                                            color: theme.primaryColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                              child: FFButtonWidget(
-                                onPressed: () async {
-                                  // ForgotEmail 페이지로 이동
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const ForgotEmail(),
-                                    ),
-                                  );
-                                },
-                                text: '이메일이 생각이 안나시나요?',
-                                options: FFButtonOptions(
-                                  width: double.infinity,
-                                  height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  color: theme.backgroundColor,
-                                  textStyle: theme.titleSmall.copyWith(
-                                    color: theme.primaryText,
-                                  ),
-                                  elevation: 0,
-                                  borderSide: BorderSide(
-                                    color: theme.primaryBackground,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  hoverColor: theme.primaryBackground,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                              child: FFButtonWidget(
-                                onPressed: () async {
-                                  // ForgetPasswordWidget으로 이동
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ForgotPassword(),
-                                    ),
-                                  );
-                                },
-                                text: '비밀번호를 잊으셨나요?',
-                                options: FFButtonOptions(
-                                  width: double.infinity,
-                                  height: 44,
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                      0, 0, 0, 0),
-                                  color: theme.backgroundColor,
-                                  textStyle: theme.titleSmall.copyWith(
-                                    color: theme.primaryText,
-                                  ),
-                                  elevation: 0,
-                                  borderSide: BorderSide(
-                                    color: theme.primaryBackground,
                                     width: 2,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
