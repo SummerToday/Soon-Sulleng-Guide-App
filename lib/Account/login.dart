@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:graduation_project/Home.dart%20';
 import 'auth2_login_model.dart';
 import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
 import '../Home.dart' as home; // Loby 화면 임포트
+import 'dart:convert'; // jsonEncode 사용을 위해 추가
+import 'package:http/http.dart' as http; // http 패키지 사용을 위해 추가
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -55,24 +56,43 @@ class _LoginWidgetState extends State<LoginWidget>
       ),
     });
   }
+  GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '756166587484-6dlgk4i58umr9ed2vlv7k7njc04efnie.apps.googleusercontent.com',  // 웹 클라이언트 ID
+    scopes: ['email', 'openid'],  // 필요한 스코프
+  );
 
   // 구글 로그인 처리
   Future<void> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
-        setState(() {
-          _isLoggedIn = true;
-          _user = googleUser;
-        });
-        print('name = ${googleUser.displayName}');
-        print('email = ${googleUser.email}');
+          final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-        // 로그인 성공 시 Loby 화면으로 이동
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+          final String? idToken = googleAuth.idToken;  // ID 토큰
+          final String? accessToken = googleAuth.accessToken;  // 액세스 토큰
+
+          print('ID Token: $idToken');
+          print('Access Token: $accessToken');
+
+        // 토큰을 백엔드로 전송하여 로그인 요청
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8080/api/google-login'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'idToken': idToken}),
         );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final newToken = responseData['userInfo']['token']; // 새로운 토큰 받기
+
+          // 받은 토큰을 기반으로 Loby 화면으로 이동
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+          );
+        } else {
+          print('로그인 실패: ${response.body}');
+        }
       }
     } catch (error) {
       print('구글 로그인 에러: $error');
