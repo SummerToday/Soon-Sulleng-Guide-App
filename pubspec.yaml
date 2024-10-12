@@ -32,8 +32,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^3.0.0
+  flutter_easyloading: ^3.0.5
   provider: ^6.0.0
   google_fonts: ^3.0.1
+  google_sign_in: ^5.4.1  # Google Sign-In 패키지 추가
+  http: ^0.13.5  # HTTP 요청을 위한 패키지 추가
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

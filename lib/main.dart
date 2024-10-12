@@ -59,7 +59,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     Future.delayed(Duration(milliseconds: 1200), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginWidget()),
+        MaterialPageRoute(builder: (context) => const LoginWidget()), // const 제거
       );
     });
   }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:graduation_project/Home.dart%20';
 import 'auth2_login_model.dart';
 import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
 import 'flutter_flow_animations.dart';
+import '../Home.dart' as home; // Loby 화면 임포트
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -20,6 +23,9 @@ class _LoginWidgetState extends State<LoginWidget>
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   final animationsMap = <String, AnimationInfo>{};
+
+  GoogleSignInAccount? _user;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
@@ -42,12 +48,35 @@ class _LoginWidgetState extends State<LoginWidget>
             curve: Curves.easeInOut,
             delay: 0.ms,
             duration: 300.ms,
-            begin: Offset(0.0, 140.0),
-            end: Offset(0.0, 0.0),
+            begin: const Offset(0.0, 140.0),
+            end: const Offset(0.0, 0.0),
           ),
         ],
       ),
     });
+  }
+
+  // 구글 로그인 처리
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser != null) {
+        setState(() {
+          _isLoggedIn = true;
+          _user = googleUser;
+        });
+        print('name = ${googleUser.displayName}');
+        print('email = ${googleUser.email}');
+
+        // 로그인 성공 시 Loby 화면으로 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+        );
+      }
+    } catch (error) {
+      print('구글 로그인 에러: $error');
+    }
   }
 
   @override
@@ -69,13 +98,13 @@ class _LoginWidgetState extends State<LoginWidget>
           gradient: LinearGradient(
             colors: [theme.primaryColor, theme.primaryColor],
             stops: [0, 1],
-            begin: AlignmentDirectional(0.87, -1),
-            end: AlignmentDirectional(-0.87, 1),
+            begin: const AlignmentDirectional(0.87, -1),
+            end: const AlignmentDirectional(-0.87, 1),
           ),
         ),
-        alignment: AlignmentDirectional(0, -1),
+        alignment: const AlignmentDirectional(0, -1),
         child: Align(
-          alignment: Alignment.topCenter,  // 컴포넌트들을 위쪽으로 올리기 위해 Align 사용
+          alignment: Alignment.topCenter, // 컴포넌트들을 위쪽으로 올리기 위해 Align 사용
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -94,7 +123,7 @@ class _LoginWidgetState extends State<LoginWidget>
                 ),
                 // "설마 아직도 안 먹어 봤어!?" 텍스트
                 Padding(
-                  padding: EdgeInsets.only(top: 10, bottom: 30),
+                  padding: const EdgeInsets.only(top: 10, bottom: 30),
                   child: Text(
                     '설마 아직도 안 먹어 봤어!?',
                     textAlign: TextAlign.center,
@@ -123,7 +152,7 @@ class _LoginWidgetState extends State<LoginWidget>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Align(
-                      alignment: AlignmentDirectional(0, 0),
+                      alignment: const AlignmentDirectional(0, 0),
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Column(
@@ -131,7 +160,7 @@ class _LoginWidgetState extends State<LoginWidget>
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Padding(
-                              padding: EdgeInsets.only(bottom: 40),
+                              padding: const EdgeInsets.only(bottom: 40),
                               child: Text(
                                 '순슐랭가이드',
                                 textAlign: TextAlign.center,
@@ -142,13 +171,9 @@ class _LoginWidgetState extends State<LoginWidget>
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
+                              padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 16),
                               child: FFButtonWidget(
-                                onPressed: () async {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('구글 계정으로 시작하기 클릭됨')),
-                                  );
-                                },
+                                onPressed: signInWithGoogle, // 구글 로그인 함수 연결
                                 text: '구글 계정으로 시작하기',
                                 icon: const FaIcon(
                                   FontAwesomeIcons.google,
@@ -156,14 +181,14 @@ class _LoginWidgetState extends State<LoginWidget>
                                   size: 30,
                                 ),
                                 options: FFButtonOptions(
-                                  width: double.infinity,  // 너비를 화면에 맞게 설정 (또는 특정 값으로 변경 가능)
-                                  height: 60,  // 높이를 기존보다 늘림 (기존 44에서 60으로)
-                                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  width: double.infinity, // 너비를 화면에 맞게 설정
+                                  height: 60, // 높이를 기존보다 늘림
+                                  padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                  iconPadding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
                                   color: theme.secondaryBackground,
                                   textStyle: theme.titleSmall.copyWith(
                                     color: theme.primaryText,
-                                    fontSize: 20,  // 폰트 크기를 18로 증가시킴
+                                    fontSize: 20,
                                   ),
                                   elevation: 0,
                                   borderSide: BorderSide(
