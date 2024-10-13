@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:io'; // iOS용 종료 메서드 사용을 위해 추가
+import 'package:flutter/services.dart'; // 안드로이드 앱 종료를 위해 추가
+
 import 'Favoritelist.dart'; // FavoriteList 화면 임포트
 import 'WriteReview.dart';
+import '../AccountInfo.dart';
 
 class Loby extends StatefulWidget {
   @override
@@ -12,13 +16,14 @@ class _LobyState extends State<Loby> {
   List<bool> _isLikedDessert = [false, false, false, false];
 
   int _selectedIndex = 0; // 선택된 탭의 인덱스를 저장하는 변수, 기본은 홈(0)
+  DateTime? _lastBackPressed; // 마지막으로 뒤로가기 버튼을 누른 시간을 저장하는 변수
 
   // 각 페이지들을 담는 리스트
   final List<Widget> _pages = [
     LobyPage(),         // 홈 화면
     FavoriteList(),  // 찜 화면
     WriteReview(),  // 평가하기 화면
-    AccountScreen()  // 계정 정보 화면
+    AccountInfo()  // 계정 정보 화면
   ];
 
   void _onItemTapped(int index) {
@@ -27,56 +32,86 @@ class _LobyState extends State<Loby> {
     });
   }
 
+  // 뒤로가기 버튼 두 번 클릭 시 앱 종료
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    final maxDuration = Duration(seconds: 2); // 2초 내에 다시 뒤로가기를 눌러야 종료
+    final isWarning = _lastBackPressed == null || now.difference(_lastBackPressed!) > maxDuration;
+
+    if (isWarning) {
+      _lastBackPressed = now;
+      // Snackbar로 경고 메시지 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('한 번 더 누르면 앱이 종료됩니다.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return Future.value(false); // 앱을 종료하지 않음
+    } else {
+      // 2초 이내에 두 번째로 뒤로가기를 누르면 앱 종료
+      if (Platform.isAndroid) {
+        SystemNavigator.pop(); // 안드로이드 앱 종료
+      } else if (Platform.isIOS) {
+        exit(0); // iOS 앱 종료
+      }
+      return Future.value(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: IndexedStack(
-        index: _selectedIndex, // 현재 선택된 페이지 인덱스
-        children: _pages,      // 페이지 리스트
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Colors.white, // 흰색 경계선
-              width: 1.0, // 경계선 두께를 얇게 설정
-            ),
-          ),
+    return WillPopScope(
+      onWillPop: _onWillPop, // 뒤로가기 시 경고 메시지 표시
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: IndexedStack(
+          index: _selectedIndex, // 현재 선택된 페이지 인덱스
+          children: _pages,      // 페이지 리스트
         ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _selectedIndex, // 선택된 탭 인덱스
-          onTap: _onItemTapped, // 클릭 시 호출되는 함수
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home, size: 40, color: _selectedIndex == 0 ? Color(0xFF0367A6) : Colors.grey),
-              label: '홈',
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: Colors.white, // 흰색 경계선
+                width: 1.0, // 경계선 두께를 얇게 설정
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 1 ? Color(0xFF0367A6) : Colors.grey),
-              label: '찜',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.border_color_outlined, size: 40, color: _selectedIndex == 2 ? Color(0xFF0367A6) : Colors.grey),
-              label: '평가하기',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
-              label: '계정 정보',
-            ),
-          ],
-          selectedLabelStyle: TextStyle(
-            fontFamily: 'Yangjin', // 글씨체 변경
-            fontSize: 14,
           ),
-          unselectedLabelStyle: TextStyle(
-            fontFamily: 'Yangjin', // 글씨체 변경
-            fontSize: 14,
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _selectedIndex, // 선택된 탭 인덱스
+            onTap: _onItemTapped, // 클릭 시 호출되는 함수
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home, size: 40, color: _selectedIndex == 0 ? Color(0xFF0367A6) : Colors.grey),
+                label: '홈',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 1 ? Color(0xFF0367A6) : Colors.grey),
+                label: '찜',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.border_color_outlined, size: 40, color: _selectedIndex == 2 ? Color(0xFF0367A6) : Colors.grey),
+                label: '평가하기',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
+                label: '계정 정보',
+              ),
+            ],
+            selectedLabelStyle: TextStyle(
+              fontFamily: 'Yangjin', // 글씨체 변경
+              fontSize: 14,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontFamily: 'Yangjin', // 글씨체 변경
+              fontSize: 14,
+            ),
+            selectedItemColor: Color(0xFF0367A6), // 선택된 아이템 색상
+            unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
+            backgroundColor: Colors.white, // 배경은 Container에서 처리
           ),
-          selectedItemColor: Color(0xFF0367A6), // 선택된 아이템 색상
-          unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
-          backgroundColor: Colors.white, // 배경은 Container에서 처리
         ),
       ),
     );

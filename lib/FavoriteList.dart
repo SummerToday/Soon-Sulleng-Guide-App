@@ -30,7 +30,7 @@ class FavoriteList extends StatelessWidget {
                         child: Image.asset(
                           'assets/images/swapped_dishs.png', // 아이콘 경로
                           width: 75,
-                          height: 57,
+                          height: 50,
                           fit: BoxFit.cover,
                         ),
                       ),

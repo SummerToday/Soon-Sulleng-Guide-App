@@ -9,6 +9,7 @@ import 'flutter_flow_animations.dart';
 import '../Home.dart' as home; // Loby 화면 임포트
 import 'dart:convert'; // jsonEncode 사용을 위해 추가
 import 'package:http/http.dart' as http; // http 패키지 사용을 위해 추가
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 패키지 추가
 
 class LoginWidget extends StatefulWidget {
   const LoginWidget({super.key});
@@ -27,6 +28,9 @@ class _LoginWidgetState extends State<LoginWidget>
 
   GoogleSignInAccount? _user;
   bool _isLoggedIn = false;
+
+  // Secure Storage 인스턴스 생성
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -55,26 +59,52 @@ class _LoginWidgetState extends State<LoginWidget>
         ],
       ),
     });
+
+    checkLoginStatus(); // 앱 시작 시 로그인 상태 확인
   }
+
   GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '756166587484-6dlgk4i58umr9ed2vlv7k7njc04efnie.apps.googleusercontent.com',  // 웹 클라이언트 ID
     scopes: ['email', 'openid'],  // 필요한 스코프
   );
 
-  // 구글 로그인 처리
+  // 로그인 상태 확인 함수
+  Future<void> checkLoginStatus() async {
+    String? refreshToken = await secureStorage.read(key: 'refreshToken');
+
+    if (refreshToken != null) {
+      // 서버에 리프레시 토큰 보내서 새로운 액세스 토큰 발급 받기
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/api/refresh-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final newAccessToken = responseData['accessToken'];
+
+        // 새로 받은 액세스 토큰 사용하여 홈 화면으로 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+        );
+      } else {
+        print('리프레시 토큰이 유효하지 않습니다.');
+      }
+    }
+  }
+
+  // 구글 로그인 처리 (토큰 저장 포함)
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
-          final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-          final String? idToken = googleAuth.idToken;  // ID 토큰
-          final String? accessToken = googleAuth.accessToken;  // 액세스 토큰
+        final String? idToken = googleAuth.idToken;
 
-          print('ID Token: $idToken');
-          print('Access Token: $accessToken');
-
-        // 토큰을 백엔드로 전송하여 로그인 요청
+        // 백엔드로 ID 토큰 전송 및 로그인 요청
         final response = await http.post(
           Uri.parse('http://10.0.2.2:8080/api/google-login'),
           headers: {'Content-Type': 'application/json'},
@@ -83,9 +113,17 @@ class _LoginWidgetState extends State<LoginWidget>
 
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
-          final newToken = responseData['userInfo']['token']; // 새로운 토큰 받기
+          final String accessToken = responseData['accessToken'];
+          final String refreshToken = responseData['refreshToken'];
 
-          // 받은 토큰을 기반으로 Loby 화면으로 이동
+          // Secure Storage에 리프레시 토큰 저장
+          await secureStorage.write(key: 'refreshToken', value: refreshToken);
+
+          // 리프레시 토큰이 잘 저장되었는지 확인
+          String? storedToken = await secureStorage.read(key: 'refreshToken');
+          print('저장된 리프레시 토큰: $storedToken'); // 저장된 토큰 출력
+
+          // Loby 화면으로 이동
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동

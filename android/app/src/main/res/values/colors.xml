@@ -1,0 +1,4 @@
+<resources>
+    <!-- Define the primary color (배경색 설정) -->
+    <color name="colorPrimary">#FF0367A6</color> <!-- 파란색 코드 -->
+</resources>
