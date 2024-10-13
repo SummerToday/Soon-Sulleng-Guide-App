@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 추가
 import 'dart:convert'; // JSON 파싱을 위해 추가
 import 'Account/auth2_create_model.dart'; // auth2_create_model.dart 파일을 임포트.
 import 'Account/login.dart'; // login.dart 파일을 임포트.
@@ -47,6 +48,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     with TickerProviderStateMixin {
   late InitalPageModel _model;
   bool _checkingLoginStatus = true; // 로그인 상태 확인 여부
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage(); // Secure Storage 추가
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -66,28 +68,52 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
   // 로그인 상태 확인 함수
   Future<void> _checkLoginStatus() async {
     try {
-      final response = await http.get(Uri.parse('https://10.0.2.2:8080/api/check-login-status'));
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
-        bool isLoggedIn = jsonResponse['isLoggedIn'];
+      // Secure Storage에서 리프레시 토큰을 읽어옴
+      String? refreshToken = await secureStorage.read(key: 'refreshToken');
+      print('저장된 리프레시 토큰: $refreshToken'); // 리프레시 토큰 출력
 
-        if (isLoggedIn) {
-          // 로그인 되어 있으면 LobyPage로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Loby()),
-          );
+      if (refreshToken != null) {
+        // 리프레시 토큰을 API 요청에 포함하여 서버에 로그인 상태 확인 요청
+        print('로그인 상태 확인 API 호출 시작');
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8080/api/check-login-status'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $refreshToken',  // Authorization 헤더에 토큰 추가
+          },
+        );
+        print('API 응답 상태 코드: ${response.statusCode}'); // 상태 코드 출력
+        print('API 응답 내용: ${response.body}'); // 응답 내용 출력
+
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(response.body);
+          bool isLoggedIn = jsonResponse['isLoggedIn'];
+
+          if (isLoggedIn) {
+            // 로그인 되어 있으면 LobyPage로 이동
+            print('로그인 성공, Loby로 이동');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Loby()),
+            );
+          } else {
+            // 로그인 안 되어 있으면 LoginWidget으로 이동
+            print('로그인 실패, LoginWidget으로 이동');
+            _redirectToLogin();
+          }
         } else {
-          // 로그인 안 되어 있으면 LoginWidget으로 이동
+          // 오류 발생 시 로그인 페이지로 이동
+          print('API 오류 발생, 상태 코드: ${response.statusCode}');
           _redirectToLogin();
         }
       } else {
-        // 오류 발생 시 로그인 페이지로 이동
+        // 리프레시 토큰이 없으면 로그인 페이지로 이동
+        print('리프레시 토큰 없음, LoginWidget으로 이동');
         _redirectToLogin();
       }
     } catch (e) {
       // 예외 발생 시 로그인 페이지로 이동
-      print('Error checking login status: $e');
+      print('예외 발생: $e');
       _redirectToLogin();
     } finally {
       setState(() {
@@ -96,14 +122,13 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     }
   }
 
+
   // LoginWidget으로 전환하는 함수
   void _redirectToLogin() {
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginWidget()),
-      );
-    });
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginWidget()),
+    );
   }
 
   @override
