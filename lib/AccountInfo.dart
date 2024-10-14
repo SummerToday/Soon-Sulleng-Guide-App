@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 패키지 추가
 import 'Account/Login.dart';  // 로그인 페이지로 이동하기 위한 import
 
 class AccountInfo extends StatefulWidget {
@@ -8,12 +9,20 @@ class AccountInfo extends StatefulWidget {
 }
 
 class _AccountInfoState extends State<AccountInfo> {
-  GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  // Secure Storage 인스턴스 생성
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   // 로그아웃 처리 함수
   Future<void> _handleSignOut() async {
     try {
+      // 구글 로그아웃 처리
       await _googleSignIn.signOut();
+
+      // Secure Storage에 저장된 리프레시 토큰 삭제
+      await secureStorage.delete(key: 'refreshToken');
+
       // 로그아웃 후 로그인 화면으로 이동
       Navigator.pushReplacement(
         context,
@@ -66,7 +75,7 @@ class _AccountInfoState extends State<AccountInfo> {
                 onPressed: _handleSignOut,  // 로그아웃 버튼 누르면 실행
                 child: Text('로그아웃'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,  // 로그아웃 버튼 색상 (primary -> backgroundColor로 수정)
+                  backgroundColor: Colors.red,  // 로그아웃 버튼 색상
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   textStyle: TextStyle(fontSize: 18),
                 ),
