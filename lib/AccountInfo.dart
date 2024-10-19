@@ -21,7 +21,7 @@ class _AccountInfoState extends State<AccountInfo> {
       await _googleSignIn.signOut();
 
       // Secure Storage에 저장된 리프레시 토큰 삭제
-      await secureStorage.delete(key: 'refreshToken');
+      await secureStorage.delete(key: 'accessToken');
 
       // 로그아웃 후 로그인 화면으로 이동
       Navigator.pushReplacement(

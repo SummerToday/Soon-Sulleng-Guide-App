@@ -68,18 +68,18 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
   // 로그인 상태 확인 함수
   Future<void> _checkLoginStatus() async {
     try {
-      // Secure Storage에서 리프레시 토큰을 읽어옴
-      String? refreshToken = await secureStorage.read(key: 'refreshToken');
-      print('저장된 리프레시 토큰: $refreshToken'); // 리프레시 토큰 출력
+      // Secure Storage에서 액세스 토큰을 읽어옴
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      print('저장된 액세스 토큰: $accessToken'); // 액세스 토큰 출력
 
-      if (refreshToken != null) {
-        // 리프레시 토큰을 API 요청에 포함하여 서버에 로그인 상태 확인 요청
+      if (accessToken != null) {
+        // 액세스 토큰을 API 요청에 포함하여 서버에 로그인 상태 확인 요청
         print('로그인 상태 확인 API 호출 시작');
         final response = await http.post(
           Uri.parse('http://10.0.2.2:8080/api/check-login-status'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $refreshToken',  // Authorization 헤더에 토큰 추가
+            'Authorization': 'Bearer $accessToken',  // Authorization 헤더에 액세스 토큰 추가
           },
         );
         print('API 응답 상태 코드: ${response.statusCode}'); // 상태 코드 출력
@@ -107,8 +107,8 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
           _redirectToLogin();
         }
       } else {
-        // 리프레시 토큰이 없으면 로그인 페이지로 이동
-        print('리프레시 토큰 없음, LoginWidget으로 이동');
+        // 액세스 토큰이 없으면 로그인 페이지로 이동
+        print('액세스 토큰 없음, LoginWidget으로 이동');
         _redirectToLogin();
       }
     } catch (e) {
@@ -121,6 +121,7 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
       });
     }
   }
+
 
 
   // LoginWidget으로 전환하는 함수
