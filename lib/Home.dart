@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io'; // iOS용 종료 메서드 사용을 위해 추가
 import 'package:flutter/services.dart'; // 안드로이드 앱 종료를 위해 추가
-
+import 'package:http/http.dart' as http; // HTTP 패키지 추가
+import 'dart:convert'; // JSON 인코딩을 위해 필요
+import 'ReviewDetailPage.dart';
 import 'Favoritelist.dart'; // FavoriteList 화면 임포트
 import 'WriteReview.dart';
 import '../AccountInfo.dart';
@@ -18,13 +20,66 @@ class _LobyState extends State<Loby> {
   int _selectedIndex = 0; // 선택된 탭의 인덱스를 저장하는 변수, 기본은 홈(0)
   DateTime? _lastBackPressed; // 마지막으로 뒤로가기 버튼을 누른 시간을 저장하는 변수
 
-  // 각 페이지들을 담는 리스트
-  final List<Widget> _pages = [
-    LobyPage(),         // 홈 화면
-    FavoriteList(),  // 찜 화면
-    WriteReview(),  // 평가하기 화면
-    AccountInfo()  // 계정 정보 화면
-  ];
+  List<Widget> _pages = []; // 페이지 리스트를 여기에 저장
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      LobyPage(
+        isLikedFood: _isLikedFood, // 음식 찜 상태 전달
+        toggleFavorite: _toggleFavorite, // 찜 상태 변경 함수 전달
+      ), // 홈 화면
+      FavoriteList(), // 찜 화면
+      WriteReview(), // 평가하기 화면
+      AccountInfo(), // 계정 정보 화면
+    ];
+  }
+
+  // 찜 API 호출 함수 (찜 상태 변경)
+  Future<void> _toggleFavorite(int index, String itemId, bool isLiked, bool isFood) async {
+    setState(() {
+      // 먼저 찜 상태를 즉시 업데이트하여 UI 반영
+      if (isFood) {
+        _isLikedFood[index] = !isLiked;
+      } else {
+        _isLikedDessert[index] = !isLiked;
+      }
+    });
+    try {
+      // API URL 설정
+      final url = isLiked ? 'https://api.example.com/unfavorite' : 'https://api.example.com/favorite';
+
+      // HTTP POST 요청
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userId': 'example_user', // 실제 사용자 ID로 변경 필요
+          'itemId': itemId,         // 찜할 아이템 ID
+        }),
+      );
+
+      // 응답 상태 확인
+      if (response.statusCode == 200) {
+        setState(() {
+          if (isFood) {
+            _isLikedFood[index] = !isLiked; // 음식의 찜 상태 업데이트
+          } else {
+            _isLikedDessert[index] = !isLiked; // 디저트의 찜 상태 업데이트
+          }
+        });
+        print('찜 상태가 서버에 반영되었습니다.');
+      } else {
+        // 오류 발생 시 응답 상태 코드 및 본문 출력
+        print('찜 API 호출 실패: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+      }
+    } catch (error) {
+      // 네트워크 요청 중 오류 발생 시 처리
+      print('API 호출 중 오류 발생: $error');
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -119,6 +174,12 @@ class _LobyState extends State<Loby> {
 }
 
 class LobyPage extends StatelessWidget {
+  final List<bool> isLikedFood; // 음식 찜 상태 리스트
+  final Function(int, String, bool, bool) toggleFavorite; // 찜 상태 변경 함수
+
+  // 생성자에서 상태와 함수를 받음
+  LobyPage({required this.isLikedFood, required this.toggleFavorite});
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -238,8 +299,11 @@ class LobyPage extends StatelessWidget {
                           'assets/images/seasoned_chicken.jpg',
                           '₩18,000 / 멕켄치킨',
                           starCount: 2,
-                          isLiked: false,
-                          onLikeToggle: () {},
+                          isLiked: isLikedFood[0],
+                          onLikeToggle: () {
+                            toggleFavorite(
+                                0, 'food_1', isLikedFood[0], true); // 찜 API 호출
+                          },
                         ),
                         _buildFoodItem(
                           context,
@@ -247,8 +311,11 @@ class LobyPage extends StatelessWidget {
                           'assets/images/platter_jjajangmyeon.jpg',
                           '₩20,000 / 중국집',
                           starCount: 1,
-                          isLiked: false,
-                          onLikeToggle: () {},
+                          isLiked: isLikedFood[1],
+                          onLikeToggle: () {
+                            toggleFavorite(
+                                1, 'food_2', isLikedFood[1], true); // 찜 API 호출
+                          },
                         ),
                       ],
                     ),
@@ -280,8 +347,11 @@ class LobyPage extends StatelessWidget {
                           'assets/images/딸기 눈꽃빙수.jpg',
                           '₩28,000 / GOGOSS COFFEE',
                           starCount: 2,
-                          isLiked: false,
-                          onLikeToggle: () {},
+                          isLiked: isLikedFood[2],
+                          onLikeToggle: () {
+                            toggleFavorite(2, 'dessert_1', isLikedFood[2],
+                                false); // 찜 API 호출
+                          },
                         ),
                         _buildDessertItem(
                           context,
@@ -289,8 +359,11 @@ class LobyPage extends StatelessWidget {
                           'assets/images/딸기 쥬얼리 벨벳 밀크티.jpg',
                           '₩5,500 / 공차 아산순천향대점',
                           starCount: 1,
-                          isLiked: false,
-                          onLikeToggle: () {},
+                          isLiked: isLikedFood[3],
+                          onLikeToggle: () {
+                            toggleFavorite(3, 'dessert_2', isLikedFood[3],
+                                false); // 찜 API 호출
+                          },
                         ),
                       ],
                     ),
@@ -305,11 +378,24 @@ class LobyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFoodItem(BuildContext context, String name, String imagePath, String price,
+  Widget _buildFoodItem(BuildContext context, String name, String imagePath,
+      String price,
       {bool isNetwork = false, int starCount = 0, bool isLiked = false, required VoidCallback onLikeToggle}) {
     return GestureDetector(
       onTap: () {
-        print('$name 클릭됨');
+        // 클릭 시 상세 화면으로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ReviewDetailPage(
+                  itemName: name,
+                  imagePath: imagePath,
+                  description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
+                  price: price,
+                ),
+          ),
+        );
       },
       child: Container(
         width: 200,
@@ -372,29 +458,28 @@ class LobyPage extends StatelessWidget {
                 ),
               ],
             ),
-            // 사진 위 좌하단 별 표시
             Positioned(
               bottom: 80,
               left: 8,
               child: Row(
                 children: List.generate(
                   starCount,
-                      (index) => Container(
-                    padding: EdgeInsets.all(1), // 패딩 크기 줄임
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.star,
-                      color: Color(0xFFDAA520),
-                      size: 20, // 아이콘 크기 줄임
-                    ),
-                  ),
+                      (index) =>
+                      Container(
+                        padding: EdgeInsets.all(1), // 패딩 크기 줄임
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.star,
+                          color: Color(0xFFDAA520),
+                          size: 20, // 아이콘 크기 줄임
+                        ),
+                      ),
                 ),
               ),
             ),
-            // 우상단 하트 버튼
             Positioned(
               top: 8,
               right: 8,
@@ -410,7 +495,7 @@ class LobyPage extends StatelessWidget {
                     color: isLiked ? Colors.red : Colors.grey,
                     size: 22, // 아이콘 크기 줄임
                   ),
-                  onPressed: onLikeToggle,
+                  onPressed: onLikeToggle, // 찜 상태 변경 함수 호출
                 ),
               ),
             ),
@@ -420,11 +505,25 @@ class LobyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDessertItem(BuildContext context, String name, String imagePath, String price,
+
+  Widget _buildDessertItem(BuildContext context, String name, String imagePath,
+      String price,
       {bool isNetwork = false, int starCount = 0, bool isLiked = false, required VoidCallback onLikeToggle}) {
     return GestureDetector(
       onTap: () {
-        print('$name 클릭됨');
+        // 클릭 시 상세 화면으로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ReviewDetailPage(
+                  itemName: name,
+                  imagePath: imagePath,
+                  description: '이 디저트는 정말 달콤합니다! 추천드려요.', // 상세 설명
+                  price: price,
+                ),
+          ),
+        );
       },
       child: Container(
         width: 200,
@@ -487,34 +586,33 @@ class LobyPage extends StatelessWidget {
                 ),
               ],
             ),
-            // 사진 위 좌하단 별 표시
             Positioned(
-              bottom: 100,
+              bottom: 80,
               left: 8,
               child: Row(
                 children: List.generate(
                   starCount,
-                      (index) => Container(
-                    padding: EdgeInsets.all(1), // 패딩 크기 줄임
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.star,
-                      color: Color(0xFFDAA520),
-                      size: 20, // 아이콘 크기 줄임
-                    ),
-                  ),
+                      (index) =>
+                      Container(
+                        padding: EdgeInsets.all(1), // 패딩 크기 줄임
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.star,
+                          color: Color(0xFFDAA520),
+                          size: 20, // 아이콘 크기 줄임
+                        ),
+                      ),
                 ),
               ),
             ),
-            // 우상단 하트 버튼
             Positioned(
               top: 8,
               right: 8,
               child: Container(
-                padding: EdgeInsets.zero, // 패딩 크기 줄임
+                padding: EdgeInsets.all(0), // 패딩 크기 줄임
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.7),
                   shape: BoxShape.circle,
@@ -525,7 +623,7 @@ class LobyPage extends StatelessWidget {
                     color: isLiked ? Colors.red : Colors.grey,
                     size: 22, // 아이콘 크기 줄임
                   ),
-                  onPressed: onLikeToggle,
+                  onPressed: onLikeToggle, // 찜 상태 변경 함수 호출
                 ),
               ),
             ),
@@ -536,8 +634,7 @@ class LobyPage extends StatelessWidget {
   }
 }
 
-
-class AccountScreen extends StatelessWidget {
+  class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
