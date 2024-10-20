@@ -5,8 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart'; // 파일 업로드시 mimeType 설정을 위해 필요
 import 'dart:convert';
 import 'package:path/path.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 추가
 import 'Home.dart';
+import 'ReviewList.dart';
+
+final FlutterSecureStorage secureStorage = const FlutterSecureStorage(); // Secure Storage 추가
 
 class WriteReview extends StatefulWidget {
   @override
@@ -33,13 +36,24 @@ class _WriteReviewState extends State<WriteReview> {
     }
   }
 
+
   // 리뷰 작성 API 호출 함수
-  Future<void> _submitReview() async {
+  Future<void> _submitReview(BuildContext context) async {
     final DateTime now = DateTime.now(); // 현재 날짜와 시간
     final String formattedDateTime = now.toIso8601String(); // ISO 8601 형식으로 변환
 
+    // SecureStorage에서 accessToken 가져오기
+    String? accessToken = await secureStorage.read(key: 'accessToken');
+    if (accessToken == null) {
+      print("Access Token이 없습니다.");
+      return;
+    }
+
     var uri = Uri.parse('http://10.0.2.2:8080/api/reviews');
     var request = http.MultipartRequest('POST', uri);
+
+    // 헤더에 액세스 토큰 추가
+    request.headers['Authorization'] = 'Bearer $accessToken';
 
     // 텍스트 데이터를 멀티파트 요청에 추가
     request.fields['category'] = _selectedCategory;
@@ -73,8 +87,44 @@ class _WriteReviewState extends State<WriteReview> {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        // 성공적으로 작성된 경우 Loby로 이동
-        Navigator.pushNamed(context as BuildContext, '/loby');
+        // 성공 알림창 표시
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "리뷰 작성 완료",
+                style: TextStyle(
+                  fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
+                ),
+              ),
+              content: Text(
+                "리뷰를 성공적으로 작성했습니다!",
+                style: TextStyle(
+                  fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 알림창 닫기
+                    _resetFields();
+                  },
+                  child: Text(
+                    "확인",
+                    style: TextStyle(
+                      fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
+
+        // 성공적으로 작성된 경우 필드 초기화
+        _resetFields();
       } else {
         print('리뷰 작성 실패: ${response.statusCode}');
       }
@@ -82,6 +132,20 @@ class _WriteReviewState extends State<WriteReview> {
       print('리뷰 작성 중 오류 발생: $error');
     }
   }
+
+  void _resetFields() {
+    setState(() {
+      _selectedCategory = '식당'; // 기본 카테고리로 설정
+      _storeName = ''; // 음식점 또는 카페 이름 초기화
+      _reviewTitle = ''; // 리뷰 제목 초기화
+      _menuName = ''; // 메뉴 이름 초기화
+      _reviewContent = ''; // 리뷰 내용 초기화
+      _images = []; // 이미지 초기화
+      _selectedStars = 0; // 별점 초기화
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +429,9 @@ class _WriteReviewState extends State<WriteReview> {
                         SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _submitReview, // 작성 버튼 누르면 리뷰 작성 API 호출
+                            onPressed: () {
+                              _submitReview(context); // 작성 버튼 누르면 리뷰 작성 API 호출
+                            }, // 작성 버튼 누르면 리뷰 작성 API 호출
                             child: Text(
                               '리뷰 작성하기',
                               style: TextStyle(
