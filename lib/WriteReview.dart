@@ -1,6 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; // 파일 업로드시 mimeType 설정을 위해 필요
+import 'dart:convert';
+import 'package:path/path.dart';
+
+import 'Home.dart';
 
 class WriteReview extends StatefulWidget {
   @override
@@ -10,6 +16,9 @@ class WriteReview extends StatefulWidget {
 class _WriteReviewState extends State<WriteReview> {
   String _selectedCategory = '식당'; // 선택된 카테고리 (음식 or 디저트)
   String _storeName = ''; // 음식점 또는 카페 이름
+  String _reviewTitle = ''; // 리뷰 제목
+  String _menuName = ''; // 메뉴 이름
+  String _reviewContent = ''; // 리뷰 내용
   List<XFile?> _images = []; // 여러 첨부된 이미지 리스트
   int _selectedStars = 0; // 선택된 별점 (0~2)
 
@@ -21,6 +30,56 @@ class _WriteReviewState extends State<WriteReview> {
       setState(() {
         _images.add(pickedFile); // 선택된 이미지를 리스트에 추가
       });
+    }
+  }
+
+  // 리뷰 작성 API 호출 함수
+  Future<void> _submitReview() async {
+    final DateTime now = DateTime.now(); // 현재 날짜와 시간
+    final String formattedDateTime = now.toIso8601String(); // ISO 8601 형식으로 변환
+
+    var uri = Uri.parse('http://your-springboot-server/api/reviews');
+    var request = http.MultipartRequest('POST', uri);
+
+    // 텍스트 데이터를 멀티파트 요청에 추가
+    request.fields['category'] = _selectedCategory;
+    request.fields['storeName'] = _storeName;
+    request.fields['reviewTitle'] = _reviewTitle;
+    request.fields['menuName'] = _menuName;
+    request.fields['reviewContent'] = _reviewContent;
+    request.fields['stars'] = _selectedStars.toString();
+    request.fields['reviewDateTime'] = formattedDateTime;
+
+    // 이미지 파일을 멀티파트 요청에 추가
+    for (var image in _images) {
+      if (image != null) {
+        var imageFile = File(image.path);
+        var stream = http.ByteStream(imageFile.openRead());
+        var length = await imageFile.length();
+
+        request.files.add(
+          http.MultipartFile(
+            'images', // 서버에서 받을 필드명
+            stream,
+            length,
+            filename: basename(image.path),
+            contentType: MediaType('image', 'jpeg'), // 이미지 파일 형식에 맞는 mimeType 설정
+          ),
+        );
+      }
+    }
+
+    try {
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        // 성공적으로 작성된 경우 Loby로 이동
+        Navigator.pushNamed(context as BuildContext, '/loby');
+      } else {
+        print('리뷰 작성 실패: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('리뷰 작성 중 오류 발생: $error');
     }
   }
 
@@ -78,6 +137,9 @@ class _WriteReviewState extends State<WriteReview> {
                   children: [
                     // 리뷰 제목
                     TextField(
+                      onChanged: (value) {
+                        _reviewTitle = value;
+                      },
                       decoration: InputDecoration(
                         labelText: '리뷰 제목',
                         labelStyle: TextStyle(
@@ -129,6 +191,9 @@ class _WriteReviewState extends State<WriteReview> {
                     SizedBox(height: 20),
                     // 음식점 또는 카페 이름 필드
                     TextField(
+                      onChanged: (value) {
+                        _storeName = value;
+                      },
                       decoration: InputDecoration(
                         labelText: _selectedCategory == '식당' ? '식당명' : '카페명',
                         labelStyle: TextStyle(
@@ -141,6 +206,9 @@ class _WriteReviewState extends State<WriteReview> {
                     SizedBox(height: 20),
                     // 메뉴 이름 필드
                     TextField(
+                      onChanged: (value) {
+                        _menuName = value;
+                      },
                       decoration: InputDecoration(
                         labelText: '메뉴명',
                         labelStyle: TextStyle(
@@ -200,6 +268,9 @@ class _WriteReviewState extends State<WriteReview> {
                     // 리뷰 내용 필드
                     TextField(
                       maxLines: 5,
+                      onChanged: (value) {
+                        _reviewContent = value;
+                      },
                       decoration: InputDecoration(
                         labelText: '리뷰 내용을 입력하세요',
                         labelStyle: TextStyle(
@@ -271,7 +342,11 @@ class _WriteReviewState extends State<WriteReview> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.pop(context); // 취소 버튼 누르면 돌아가기
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => Loby()), // Loby 페이지로 이동
+                                    (Route<dynamic> route) => false, // 모든 이전 경로 제거
+                              );
                             },
                             child: Text(
                               '취소',
@@ -290,9 +365,7 @@ class _WriteReviewState extends State<WriteReview> {
                         SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {
-                              print('리뷰 작성 완료');
-                            },
+                            onPressed: _submitReview, // 작성 버튼 누르면 리뷰 작성 API 호출
                             child: Text(
                               '리뷰 작성하기',
                               style: TextStyle(
