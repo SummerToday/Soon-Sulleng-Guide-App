@@ -38,7 +38,7 @@ class _WriteReviewState extends State<WriteReview> {
     final DateTime now = DateTime.now(); // 현재 날짜와 시간
     final String formattedDateTime = now.toIso8601String(); // ISO 8601 형식으로 변환
 
-    var uri = Uri.parse('http://your-springboot-server/api/reviews');
+    var uri = Uri.parse('http://10.0.2.2:8080/api/reviews');
     var request = http.MultipartRequest('POST', uri);
 
     // 텍스트 데이터를 멀티파트 요청에 추가
