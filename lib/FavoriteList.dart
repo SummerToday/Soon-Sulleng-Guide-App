@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'MenuDetailInfo.dart'; // MenuDetailInfo 페이지 import
 
 class FavoriteList extends StatelessWidget {
   @override
@@ -63,14 +64,15 @@ class FavoriteList extends StatelessWidget {
                       '양념치킨',
                       'assets/images/seasoned_chicken.jpg',
                       '₩18,000 / 멕켄치킨',
+                      '정말 맛있어요! 추천드립니다.', // 상세 설명 추가
                     ),
                     _buildFavoriteItem(
                       context,
                       '딸기 눈꽃빙수',
                       'assets/images/딸기 눈꽃빙수.jpg',
                       '₩28,000 / GOGOSS COFFEE',
+                      '달콤하고 시원해요!', // 상세 설명 추가
                     ),
-                    // 여기에 추가적으로 찜한 목록을 추가할 수 있음
                   ],
                 ),
               ),
@@ -81,10 +83,21 @@ class FavoriteList extends StatelessWidget {
     );
   }
 
-  Widget _buildFavoriteItem(BuildContext context, String name, String imagePath, String price) {
+  Widget _buildFavoriteItem(BuildContext context, String name, String imagePath, String price, String description) {
     return GestureDetector(
       onTap: () {
-        print('$name 클릭됨');
+        // 클릭 시 해당 메뉴의 상세 페이지로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MenuDetailInfo(
+              itemName: name,
+              imagePath: imagePath,
+              description: description,
+              price: price,
+            ),
+          ),
+        );
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 16.0),

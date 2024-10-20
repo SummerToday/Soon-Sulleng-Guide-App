@@ -3,6 +3,7 @@ import 'dart:io'; // iOS용 종료 메서드 사용을 위해 추가
 import 'package:flutter/services.dart'; // 안드로이드 앱 종료를 위해 추가
 import 'package:http/http.dart' as http; // HTTP 패키지 추가
 import 'dart:convert'; // JSON 인코딩을 위해 필요
+import 'MenuDetailInfo.dart';
 import 'ReviewDetailPage.dart';
 import 'Favoritelist.dart'; // FavoriteList 화면 임포트
 import 'ReviewList.dart';
@@ -393,13 +394,12 @@ class LobyPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                ReviewDetailPage(
-                  itemName: name,
-                  imagePath: imagePath,
-                  description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
-                  price: price,
-                ),
+            builder: (context) => MenuDetailInfo(
+              itemName: name,
+              imagePath: imagePath,
+              description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
+              price: price,
+            ),
           ),
         );
       },
@@ -521,13 +521,12 @@ class LobyPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                ReviewDetailPage(
-                  itemName: name,
-                  imagePath: imagePath,
-                  description: '이 디저트는 정말 달콤합니다! 추천드려요.', // 상세 설명
-                  price: price,
-                ),
+            builder: (context) => MenuDetailInfo(
+              itemName: name,
+              imagePath: imagePath,
+              description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
+              price: price,
+            ),
           ),
         );
       },
