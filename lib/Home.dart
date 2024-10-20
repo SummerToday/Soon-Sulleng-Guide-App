@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http; // HTTP 패키지 추가
 import 'dart:convert'; // JSON 인코딩을 위해 필요
 import 'ReviewDetailPage.dart';
 import 'Favoritelist.dart'; // FavoriteList 화면 임포트
+import 'ReviewList.dart';
 import 'WriteReview.dart';
 import '../AccountInfo.dart';
 
@@ -30,8 +31,9 @@ class _LobyState extends State<Loby> {
         isLikedFood: _isLikedFood, // 음식 찜 상태 전달
         toggleFavorite: _toggleFavorite, // 찜 상태 변경 함수 전달
       ), // 홈 화면
-      FavoriteList(), // 찜 화면
+      ReviewList(), // 리뷰 목록 화면
       WriteReview(), // 평가하기 화면
+      FavoriteList(), // 찜 화면
       AccountInfo(), // 계정 정보 화면
     ];
   }
@@ -143,15 +145,19 @@ class _LobyState extends State<Loby> {
                 label: '홈',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 1 ? Color(0xFF0367A6) : Colors.grey),
-                label: '찜',
+                icon: Icon(Icons.list, size: 40, color: _selectedIndex == 1 ? Color(0xFF0367A6) : Colors.grey),
+                label: '리뷰 목록',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.border_color_outlined, size: 40, color: _selectedIndex == 2 ? Color(0xFF0367A6) : Colors.grey),
-                label: '평가하기',
+                label: '리뷰 작성',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
+                icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
+                label: '찜',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 4 ? Color(0xFF0367A6) : Colors.grey),
                 label: '계정 정보',
               ),
             ],
@@ -277,7 +283,7 @@ class LobyPage extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
-                      '음식',
+                      '식당',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 25,
@@ -325,7 +331,7 @@ class LobyPage extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
-                      '디저트',
+                      '카페',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 25,

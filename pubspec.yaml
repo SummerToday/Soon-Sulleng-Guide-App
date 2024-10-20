@@ -32,6 +32,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   flutter:
     sdk: flutter
+  image_picker: ^0.8.4+4
   flutter_animate: ^3.0.0
   flutter_easyloading: ^3.0.5
   provider: ^6.0.0
