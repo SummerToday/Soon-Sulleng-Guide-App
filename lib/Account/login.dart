@@ -59,8 +59,6 @@ class _LoginWidgetState extends State<LoginWidget>
         ],
       ),
     });
-
-    checkLoginStatus(); // 앱 시작 시 로그인 상태 확인
   }
 
   GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -68,41 +66,8 @@ class _LoginWidgetState extends State<LoginWidget>
     scopes: ['email', 'openid'],  // 필요한 스코프
   );
 
-  // 로그인 상태 확인 함수
-  Future<void> checkLoginStatus() async {
-    String? accessToken = await secureStorage.read(key: 'accessToken');
 
-    if (accessToken != null) {
-      // 서버에 액세스 토큰 보내서 로그인 상태 확인
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:8080/api/check-login-status'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken'
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final isLoggedIn = responseData['isLoggedIn'];
-
-        if (isLoggedIn) {
-          // 로그인 성공 시 홈 화면으로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
-          );
-        } else {
-          print('로그인 상태가 아닙니다.');
-        }
-      } else {
-        print('액세스 토큰이 유효하지 않습니다.');
-      }
-    }
-  }
-
-
-  // 구글 로그인 처리 (액세스 토큰 저장)
+  // 구글 로그인 처리 (액세스 토큰, 리프레시 토큰 저장)
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -121,13 +86,15 @@ class _LoginWidgetState extends State<LoginWidget>
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
           final String accessToken = responseData['accessToken'];
-
+          final String refreshToken = responseData['refreshToken'];
           // Secure Storage에 액세스 토큰 저장
           await secureStorage.write(key: 'accessToken', value: accessToken);
-
+          await secureStorage.write(key: 'refreshToken', value: refreshToken);
           // 액세스 토큰이 잘 저장되었는지 확인
           String? storedAccessToken = await secureStorage.read(key: 'accessToken');
+          String? storedRefreshToken = await secureStorage.read(key: 'refreshToken');
           print('저장된 액세스 토큰: $storedAccessToken'); // 저장된 토큰 출력
+          print('저장된 리프레시 토큰: $storedRefreshToken'); // 저장된 토큰 출력
 
           // Loby 화면으로 이동
           Navigator.pushReplacement(

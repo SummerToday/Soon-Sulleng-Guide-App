@@ -101,15 +101,19 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
             print('로그인 실패, LoginWidget으로 이동');
             _redirectToLogin();
           }
+        } else if (response.statusCode == 401) {
+          // 액세스 토큰이 만료된 경우 리프레시 토큰을 이용해 다시 발급받는 로직 호출
+          print('액세스 토큰 만료됨, 리프레시 토큰으로 재발급 시도');
+          await _refreshAccessToken();
         } else {
-          // 오류 발생 시 로그인 페이지로 이동
+          // 다른 오류 발생 시 로그인 페이지로 이동
           print('API 오류 발생, 상태 코드: ${response.statusCode}');
           _redirectToLogin();
         }
       } else {
-        // 액세스 토큰이 없으면 로그인 페이지로 이동
-        print('액세스 토큰 없음, LoginWidget으로 이동');
-        _redirectToLogin();
+        // 액세스 토큰이 없으면 리프레시 토큰을 이용해 새로운 액세스 토큰을 발급받는 로직 호출
+        print('액세스 토큰 없음, 리프레시 토큰을 사용해 액세스 토큰 재발급 시도');
+        await _refreshAccessToken();
       }
     } catch (e) {
       // 예외 발생 시 로그인 페이지로 이동
@@ -122,9 +126,60 @@ class _InitalPageWidgetState extends State<InitalPageWidget>
     }
   }
 
+// 리프레시 토큰을 이용해 액세스 토큰 재발급 함수
+  Future<void> _refreshAccessToken() async {
+    try {
+      // Secure Storage에서 리프레시 토큰을 읽어옴
+      String? refreshToken = await secureStorage.read(key: 'refreshToken');
+      print('저장된 리프레시 토큰: $refreshToken'); // 리프레시 토큰 출력
 
+      if (refreshToken != null) {
+        // 리프레시 토큰을 API 요청에 포함하여 새로운 액세스 토큰 발급 요청
+        print('리프레시 토큰을 이용해 새로운 액세스 토큰 발급 요청');
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8080/api/refresh-token'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'refreshToken': refreshToken}),
+        );
+        print('리프레시 토큰 API 응답 상태 코드: ${response.statusCode}'); // 상태 코드 출력
+        print('리프레시 토큰 API 응답 내용: ${response.body}'); // 응답 내용 출력
 
-  // LoginWidget으로 전환하는 함수
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(response.body);
+          String newAccessToken = jsonResponse['accessToken'];
+          String newRefreshToken = jsonResponse['refreshToken'];
+
+          // Secure Storage에 새로운 액세스 토큰과 리프레시 토큰 저장
+          await secureStorage.write(key: 'accessToken', value: newAccessToken);
+          await secureStorage.write(key: 'refreshToken', value: newRefreshToken);
+
+          print('새로운 액세스 토큰과 리프레시 토큰이 저장되었습니다.');
+
+          // 액세스 토큰 발급 후 Loby로 이동
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Loby()),
+          );
+        } else {
+          // 리프레시 토큰이 유효하지 않으면 로그인 페이지로 이동
+          print('리프레시 토큰 유효하지 않음, 로그인 페이지로 이동');
+          _redirectToLogin();
+        }
+      } else {
+        // 리프레시 토큰이 없으면 로그인 페이지로 이동
+        print('리프레시 토큰 없음, 로그인 페이지로 이동');
+        _redirectToLogin();
+      }
+    } catch (e) {
+      // 예외 발생 시 로그인 페이지로 이동
+      print('리프레시 토큰 재발급 중 예외 발생: $e');
+      _redirectToLogin();
+    }
+  }
+
+// LoginWidget으로 전환하는 함수
   void _redirectToLogin() {
     Navigator.pushReplacement(
       context,
