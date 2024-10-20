@@ -214,7 +214,7 @@ class LobyPage extends StatelessWidget {
                       child: Image.asset(
                         'assets/images/swapped_dishs.png',
                         width: 75,
-                        height: 57,
+                        height: 50,
                         fit: BoxFit.cover,
                       ),
                     ),
