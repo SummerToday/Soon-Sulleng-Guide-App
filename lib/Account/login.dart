@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'NicknameInputScreen.dart';
 import 'auth2_login_model.dart';
 import 'flutter_flow_theme.dart';
 import 'flutter_flow_widgets.dart';
@@ -67,6 +68,7 @@ class _LoginWidgetState extends State<LoginWidget>
   );
 
 
+
   // 구글 로그인 처리 (액세스 토큰, 리프레시 토큰 저장)
   Future<void> signInWithGoogle() async {
     try {
@@ -87,20 +89,49 @@ class _LoginWidgetState extends State<LoginWidget>
           final responseData = jsonDecode(response.body);
           final String accessToken = responseData['accessToken'];
           final String refreshToken = responseData['refreshToken'];
+          final String email = responseData['userInfo']['email'];
+
           // Secure Storage에 액세스 토큰 저장
           await secureStorage.write(key: 'accessToken', value: accessToken);
           await secureStorage.write(key: 'refreshToken', value: refreshToken);
+
           // 액세스 토큰이 잘 저장되었는지 확인
           String? storedAccessToken = await secureStorage.read(key: 'accessToken');
           String? storedRefreshToken = await secureStorage.read(key: 'refreshToken');
-          print('저장된 액세스 토큰: $storedAccessToken'); // 저장된 토큰 출력
-          print('저장된 리프레시 토큰: $storedRefreshToken'); // 저장된 토큰 출력
+          print('저장된 액세스 토큰: $storedAccessToken');
+          print('저장된 리프레시 토큰: $storedRefreshToken');
 
-          // Loby 화면으로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+          // 서버에 이메일 기반으로 닉네임이 있는지 확인하는 API 호출
+          final checkNickResponse = await http.get(
+            Uri.parse('http://10.0.2.2:8080/api/users/check-nickname?email=$email'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $accessToken', // Authorization 헤더에 액세스 토큰 추가
+            },
           );
+
+          if (checkNickResponse.statusCode == 200) {
+            final nickCheckData = jsonDecode(checkNickResponse.body);
+            final bool hasNickname = nickCheckData['hasNickname'];
+
+            if (hasNickname) {
+              // 닉네임이 있는 경우 Loby로 이동
+              print('닉네임 존재, Loby로 이동');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => home.Loby()), // Loby로 이동
+              );
+            } else {
+              // 닉네임이 없는 경우 NicknameInputScreen으로 이동
+              print('닉네임 없음, NicknameInputScreen으로 이동');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => NicknameInputScreen()), // Nickname 입력 화면으로 이동
+              );
+            }
+          } else {
+            print('닉네임 확인 실패: ${checkNickResponse.body}');
+          }
         } else {
           print('로그인 실패: ${response.body}');
         }
@@ -109,6 +140,7 @@ class _LoginWidgetState extends State<LoginWidget>
       print('구글 로그인 에러: $error');
     }
   }
+
 
 
   @override
