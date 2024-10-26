@@ -155,7 +155,7 @@ class _LobyState extends State<Loby> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.favorite_rounded, size: 40, color: _selectedIndex == 3 ? Color(0xFF0367A6) : Colors.grey),
-                label: '찜',
+                label: '저장',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.account_circle, size: 40, color: _selectedIndex == 4 ? Color(0xFF0367A6) : Colors.grey),

@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; // 파일 업로드시 mimeType 설정을 위해 필요
+import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 import 'package:path/path.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 추가
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'Home.dart';
 import 'ReviewList.dart';
 
-final FlutterSecureStorage secureStorage = const FlutterSecureStorage(); // Secure Storage 추가
+final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
 class WriteReview extends StatefulWidget {
   @override
@@ -17,13 +17,14 @@ class WriteReview extends StatefulWidget {
 }
 
 class _WriteReviewState extends State<WriteReview> {
-  String _selectedCategory = '식당'; // 선택된 카테고리 (음식 or 디저트)
-  String _storeName = ''; // 음식점 또는 카페 이름
-  String _reviewTitle = ''; // 리뷰 제목
-  String _menuName = ''; // 메뉴 이름
-  String _reviewContent = ''; // 리뷰 내용
-  List<XFile?> _images = []; // 여러 첨부된 이미지 리스트
-  int _selectedStars = 0; // 선택된 별점 (0~2)
+  String _selectedCategory = '식당';
+  String _storeName = '';
+  String _reviewTitle = '';
+  String _menuName = '';
+  String _reviewContent = '';
+  String _price = ''; // 가격 정보를 저장하는 변수 추가
+  List<XFile?> _images = [];
+  int _selectedStars = 0;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -31,16 +32,15 @@ class _WriteReviewState extends State<WriteReview> {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _images.add(pickedFile); // 선택된 이미지를 리스트에 추가
+        _images.add(pickedFile);
       });
     }
   }
 
-
   // 리뷰 작성 API 호출 함수
   Future<void> _submitReview(BuildContext context) async {
-    final DateTime now = DateTime.now(); // 현재 날짜와 시간
-    final String formattedDateTime = now.toIso8601String(); // ISO 8601 형식으로 변환
+    final DateTime now = DateTime.now();
+    final String formattedDateTime = now.toIso8601String();
 
     // SecureStorage에서 accessToken 가져오기
     String? accessToken = await secureStorage.read(key: 'accessToken');
@@ -63,6 +63,7 @@ class _WriteReviewState extends State<WriteReview> {
     request.fields['reviewContent'] = _reviewContent;
     request.fields['stars'] = _selectedStars.toString();
     request.fields['reviewDateTime'] = formattedDateTime;
+    request.fields['price'] = _price; // 가격 정보 추가
 
     // 이미지 파일을 멀티파트 요청에 추가
     for (var image in _images) {
@@ -73,11 +74,11 @@ class _WriteReviewState extends State<WriteReview> {
 
         request.files.add(
           http.MultipartFile(
-            'images', // 서버에서 받을 필드명
+            'images',
             stream,
             length,
             filename: basename(image.path),
-            contentType: MediaType('image', 'jpeg'), // 이미지 파일 형식에 맞는 mimeType 설정
+            contentType: MediaType('image', 'jpeg'),
           ),
         );
       }
@@ -87,43 +88,33 @@ class _WriteReviewState extends State<WriteReview> {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        // 성공 알림창 표시
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text(
                 "리뷰 작성 완료",
-                style: TextStyle(
-                  fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
-                ),
+                style: TextStyle(fontFamily: 'Yangjin'),
               ),
               content: Text(
                 "리뷰를 성공적으로 작성했습니다!",
-                style: TextStyle(
-                  fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
-                ),
+                style: TextStyle(fontFamily: 'Yangjin'),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // 알림창 닫기
+                    Navigator.of(context).pop();
                     _resetFields();
                   },
                   child: Text(
                     "확인",
-                    style: TextStyle(
-                      fontFamily: 'Yangjin', // 글씨체 Yangjin 적용
-                    ),
+                    style: TextStyle(fontFamily: 'Yangjin'),
                   ),
                 ),
               ],
             );
           },
         );
-
-
-        // 성공적으로 작성된 경우 필드 초기화
         _resetFields();
       } else {
         print('리뷰 작성 실패: ${response.statusCode}');
@@ -135,17 +126,16 @@ class _WriteReviewState extends State<WriteReview> {
 
   void _resetFields() {
     setState(() {
-      _selectedCategory = '식당'; // 기본 카테고리로 설정
-      _storeName = ''; // 음식점 또는 카페 이름 초기화
-      _reviewTitle = ''; // 리뷰 제목 초기화
-      _menuName = ''; // 메뉴 이름 초기화
-      _reviewContent = ''; // 리뷰 내용 초기화
-      _images = []; // 이미지 초기화
-      _selectedStars = 0; // 별점 초기화
+      _selectedCategory = '식당';
+      _storeName = '';
+      _reviewTitle = '';
+      _menuName = '';
+      _reviewContent = '';
+      _price = ''; // 가격 정보 초기화
+      _images = [];
+      _selectedStars = 0;
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +144,6 @@ class _WriteReviewState extends State<WriteReview> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with "순슐랭가이드" and Icon
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
@@ -193,13 +182,11 @@ class _WriteReviewState extends State<WriteReview> {
               ),
             ),
             SizedBox(height: 10),
-            // Review Form Section
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: ListView(
                   children: [
-                    // 리뷰 제목
                     TextField(
                       onChanged: (value) {
                         _reviewTitle = value;
@@ -214,7 +201,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // 음식/디저트 선택
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -253,7 +239,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ],
                     ),
                     SizedBox(height: 20),
-                    // 음식점 또는 카페 이름 필드
                     TextField(
                       onChanged: (value) {
                         _storeName = value;
@@ -268,7 +253,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // 메뉴 이름 필드
                     TextField(
                       onChanged: (value) {
                         _menuName = value;
@@ -283,7 +267,20 @@ class _WriteReviewState extends State<WriteReview> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // 별점 선택
+                    TextField(
+                      onChanged: (value) {
+                        _price = value;
+                      },
+                      decoration: InputDecoration(
+                        labelText: '가격: ex. 10000원',
+                        labelStyle: TextStyle(
+                          fontFamily: 'Yangjin',
+                          color: Colors.grey,
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
                     Text(
                       '별점 선택',
                       style: TextStyle(
@@ -329,7 +326,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ],
                     ),
                     SizedBox(height: 20),
-                    // 리뷰 내용 필드
                     TextField(
                       maxLines: 5,
                       onChanged: (value) {
@@ -345,7 +341,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // 사진 추가 버튼 및 미리보기 (여러 장 가로 스크롤)
                     OutlinedButton(
                       onPressed: _pickImage,
                       child: Text(
@@ -357,8 +352,8 @@ class _WriteReviewState extends State<WriteReview> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 10), // 버튼 크기 조정
-                        side: BorderSide(color: Colors.grey), // 테두리 색상
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        side: BorderSide(color: Colors.grey),
                       ),
                     ),
                     SizedBox(height: 10),
@@ -366,7 +361,7 @@ class _WriteReviewState extends State<WriteReview> {
                         ? Container(
                       height: 200,
                       child: ListView.builder(
-                        scrollDirection: Axis.horizontal, // 가로 스크롤
+                        scrollDirection: Axis.horizontal,
                         itemCount: _images.length,
                         itemBuilder: (context, index) {
                           return Padding(
@@ -390,17 +385,6 @@ class _WriteReviewState extends State<WriteReview> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // 별점 의미 설명
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('x : 또 먹으러 오지는 않겠네', style: TextStyle(fontFamily: 'Yangjin', fontSize: 14, color: Colors.grey)),
-                        Text('1개: 다음에 또 먹으러 올만한데?', style: TextStyle(fontFamily: 'Yangjin', fontSize: 14, color: Colors.grey)),
-                        Text('2개: 무조건 또 먹으러 와야지.', style: TextStyle(fontFamily: 'Yangjin', fontSize: 14, color: Colors.grey)),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    // 취소와 리뷰 작성 버튼
                     Row(
                       children: [
                         Expanded(
@@ -408,8 +392,8 @@ class _WriteReviewState extends State<WriteReview> {
                             onPressed: () {
                               Navigator.pushAndRemoveUntil(
                                 context,
-                                MaterialPageRoute(builder: (context) => Loby()), // Loby 페이지로 이동
-                                    (Route<dynamic> route) => false, // 모든 이전 경로 제거
+                                MaterialPageRoute(builder: (context) => Loby()),
+                                    (Route<dynamic> route) => false,
                               );
                             },
                             child: Text(
@@ -421,7 +405,7 @@ class _WriteReviewState extends State<WriteReview> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey, // 취소 버튼 배경색
+                              backgroundColor: Colors.grey,
                               padding: EdgeInsets.symmetric(vertical: 15),
                             ),
                           ),
@@ -430,8 +414,8 @@ class _WriteReviewState extends State<WriteReview> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              _submitReview(context); // 작성 버튼 누르면 리뷰 작성 API 호출
-                            }, // 작성 버튼 누르면 리뷰 작성 API 호출
+                              _submitReview(context);
+                            },
                             child: Text(
                               '리뷰 작성하기',
                               style: TextStyle(
@@ -441,7 +425,7 @@ class _WriteReviewState extends State<WriteReview> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0367A6), // 버튼 배경색
+                              backgroundColor: Color(0xFF0367A6),
                               padding: EdgeInsets.symmetric(vertical: 15),
                             ),
                           ),

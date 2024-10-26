@@ -44,7 +44,7 @@ class FavoriteList extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
-                '내가 찜한 메뉴들',
+                '내가 저장한 리뷰들',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
