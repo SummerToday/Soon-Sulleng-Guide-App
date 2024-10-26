@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:io'; // iOS용 종료 메서드 사용을 위해 추가
-import 'package:flutter/services.dart'; // 안드로이드 앱 종료를 위해 추가
-import 'package:http/http.dart' as http; // HTTP 패키지 추가
-import 'dart:convert'; // JSON 인코딩을 위해 필요
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'MenuDetailInfo.dart';
 import 'ReviewDetailPage.dart';
-import 'Favoritelist.dart'; // FavoriteList 화면 임포트
+import 'Favoritelist.dart';
 import 'ReviewList.dart';
 import 'WriteReview.dart';
 import '../AccountInfo.dart';
@@ -16,102 +16,108 @@ class Loby extends StatefulWidget {
 }
 
 class _LobyState extends State<Loby> {
-  List<bool> _isLikedFood = [false, false, false, false];
-  List<bool> _isLikedDessert = [false, false, false, false];
+  List<Map<String, dynamic>> _foodList = [];
+  List<Map<String, dynamic>> _dessertList = [];
+  bool _isLoading = true;
 
-  int _selectedIndex = 0; // 선택된 탭의 인덱스를 저장하는 변수, 기본은 홈(0)
-  DateTime? _lastBackPressed; // 마지막으로 뒤로가기 버튼을 누른 시간을 저장하는 변수
+  int _selectedIndex = 0;
+  DateTime? _lastBackPressed;
 
-  List<Widget> _pages = []; // 페이지 리스트를 여기에 저장
+  List<Widget> _pages = [];
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      LobyPage(
-        isLikedFood: _isLikedFood, // 음식 찜 상태 전달
-        toggleFavorite: _toggleFavorite, // 찜 상태 변경 함수 전달
-      ), // 홈 화면
-      ReviewList(), // 리뷰 목록 화면
-      WriteReview(), // 평가하기 화면
-      FavoriteList(), // 찜 화면
-      AccountInfo(), // 계정 정보 화면
-    ];
+    _fetchReviewData();
   }
 
-  // 찜 API 호출 함수 (찜 상태 변경)
-  Future<void> _toggleFavorite(int index, String itemId, bool isLiked, bool isFood) async {
+  Future<void> _fetchReviewData() async {
     setState(() {
-      // 먼저 찜 상태를 즉시 업데이트하여 UI 반영
-      if (isFood) {
-        _isLikedFood[index] = !isLiked;
-      } else {
-        _isLikedDessert[index] = !isLiked;
-      }
+      _isLoading = true; // 데이터를 가져오기 전에 로딩 상태를 true로 설정
     });
-    try {
-      // API URL 설정
-      final url = isLiked ? 'https://api.example.com/unfavorite' : 'https://api.example.com/favorite';
 
-      // HTTP POST 요청
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'userId': 'example_user', // 실제 사용자 ID로 변경 필요
-          'itemId': itemId,         // 찜할 아이템 ID
-        }),
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        setState(() {
+          _isLoading = false; // 액세스 토큰이 없을 때 로딩 상태를 false로 설정
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/reviews/getReviews'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
       );
 
-      // 응답 상태 확인
+      // 응답 상태 코드 로그 출력
+      print('Response Status Code: ${response.statusCode}');
+      // 응답 본문 로그 출력
+      print('Response Body: ${utf8.decode(response.bodyBytes)}');
+
       if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
         setState(() {
-          if (isFood) {
-            _isLikedFood[index] = !isLiked; // 음식의 찜 상태 업데이트
-          } else {
-            _isLikedDessert[index] = !isLiked; // 디저트의 찜 상태 업데이트
-          }
+          _foodList = List<Map<String, dynamic>>.from(data["식당"] ?? []);
+          _dessertList = List<Map<String, dynamic>>.from(data["카페"] ?? []);
+          _isLoading = false; // 로딩 완료
+          _pages = [
+            LobyPage(foodList: _foodList, dessertList: _dessertList, isLoading: _isLoading),
+            ReviewList(),
+            WriteReview(),
+            FavoriteList(),
+            AccountInfo(),
+          ];
         });
-        print('찜 상태가 서버에 반영되었습니다.');
       } else {
-        // 오류 발생 시 응답 상태 코드 및 본문 출력
-        print('찜 API 호출 실패: ${response.statusCode}');
-        print('Response Body: ${response.body}');
+        print('Failed to load data. 상태 코드: ${response.statusCode}');
+        setState(() {
+          _isLoading = false; // 상태 코드가 200이 아닐 때 로딩 상태를 false로 설정
+        });
       }
     } catch (error) {
-      // 네트워크 요청 중 오류 발생 시 처리
-      print('API 호출 중 오류 발생: $error');
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false; // 오류 발생 시 로딩 상태를 false로 설정
+      });
     }
   }
 
   void _onItemTapped(int index) {
+    if (index == 0) {
+      // 홈 화면이 선택될 때마다 최신 데이터를 가져오기 위해 API 호출
+      _fetchReviewData();
+    }
+
     setState(() {
-      _selectedIndex = index; // 선택된 인덱스를 업데이트
+      _selectedIndex = index;
     });
   }
 
-  // 뒤로가기 버튼 두 번 클릭 시 앱 종료
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
-    final maxDuration = Duration(seconds: 2); // 2초 내에 다시 뒤로가기를 눌러야 종료
+    final maxDuration = Duration(seconds: 2);
     final isWarning = _lastBackPressed == null || now.difference(_lastBackPressed!) > maxDuration;
 
     if (isWarning) {
       _lastBackPressed = now;
-      // Snackbar로 경고 메시지 표시
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('한 번 더 누르면 앱이 종료됩니다.'),
           duration: Duration(seconds: 2),
         ),
       );
-      return Future.value(false); // 앱을 종료하지 않음
+      return Future.value(false);
     } else {
-      // 2초 이내에 두 번째로 뒤로가기를 누르면 앱 종료
       if (Platform.isAndroid) {
-        SystemNavigator.pop(); // 안드로이드 앱 종료
+        SystemNavigator.pop();
       } else if (Platform.isIOS) {
-        exit(0); // iOS 앱 종료
+        exit(0);
       }
       return Future.value(true);
     }
@@ -120,26 +126,26 @@ class _LobyState extends State<Loby> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onWillPop, // 뒤로가기 시 경고 메시지 표시
+      onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: IndexedStack(
-          index: _selectedIndex, // 현재 선택된 페이지 인덱스
-          children: _pages,      // 페이지 리스트
+          index: _selectedIndex,
+          children: _pages.isNotEmpty ? _pages : [Center(child: CircularProgressIndicator())],
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(
-                color: Colors.white, // 흰색 경계선
-                width: 1.0, // 경계선 두께를 얇게 설정
+                color: Colors.white,
+                width: 1.0,
               ),
             ),
           ),
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            currentIndex: _selectedIndex, // 선택된 탭 인덱스
-            onTap: _onItemTapped, // 클릭 시 호출되는 함수
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home, size: 40, color: _selectedIndex == 0 ? Color(0xFF0367A6) : Colors.grey),
@@ -162,17 +168,11 @@ class _LobyState extends State<Loby> {
                 label: '계정 정보',
               ),
             ],
-            selectedLabelStyle: TextStyle(
-              fontFamily: 'Yangjin', // 글씨체 변경
-              fontSize: 14,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontFamily: 'Yangjin', // 글씨체 변경
-              fontSize: 14,
-            ),
-            selectedItemColor: Color(0xFF0367A6), // 선택된 아이템 색상
-            unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
-            backgroundColor: Colors.white, // 배경은 Container에서 처리
+            selectedLabelStyle: TextStyle(fontFamily: 'Yangjin', fontSize: 14),
+            unselectedLabelStyle: TextStyle(fontFamily: 'Yangjin', fontSize: 14),
+            selectedItemColor: Color(0xFF0367A6),
+            unselectedItemColor: Colors.grey,
+            backgroundColor: Colors.white,
           ),
         ),
       ),
@@ -180,25 +180,28 @@ class _LobyState extends State<Loby> {
   }
 }
 
-class LobyPage extends StatelessWidget {
-  final List<bool> isLikedFood; // 음식 찜 상태 리스트
-  final Function(int, String, bool, bool) toggleFavorite; // 찜 상태 변경 함수
+class LobyPage extends StatefulWidget {
+  final List<Map<String, dynamic>> foodList;
+  final List<Map<String, dynamic>> dessertList;
+  final bool isLoading;
 
-  // 생성자에서 상태와 함수를 받음
-  LobyPage({required this.isLikedFood, required this.toggleFavorite});
+  LobyPage({required this.foodList, required this.dessertList, required this.isLoading});
 
+  @override
+  _LobyPageState createState() => _LobyPageState();
+}
+
+class _LobyPageState extends State<LobyPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
         children: [
-          // Header with Search Bar
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and Image
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -222,7 +225,6 @@ class LobyPage extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 10),
-                // Search Bar with Button Icons
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12.0),
                   decoration: BoxDecoration(
@@ -247,17 +249,11 @@ class LobyPage extends StatelessWidget {
                       SizedBox(width: 8),
                       Expanded(
                         child: TextField(
-                          style: TextStyle(
-                            fontFamily: 'Yangjin',
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontFamily: 'Yangjin', color: Colors.grey),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: '오늘 점심 뭐 먹지',
-                            hintStyle: TextStyle(
-                              fontFamily: 'Yangjin',
-                              color: Colors.grey,
-                            ),
+                            hintStyle: TextStyle(fontFamily: 'Yangjin', color: Colors.grey),
                           ),
                         ),
                       ),
@@ -274,107 +270,16 @@ class LobyPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          // Food Section
-          Expanded(
+          widget.isLoading
+              ? CircularProgressIndicator()
+              : Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Food Section Title
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      '식당',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 25,
-                        fontFamily: 'Yangjin',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Horizontal Scroll Food Items
-                  Container(
-                    height: 270,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      children: [
-                        _buildFoodItem(
-                          context,
-                          '양념치킨',
-                          'assets/images/seasoned_chicken.jpg',
-                          '₩18,000 / 멕켄치킨',
-                          starCount: 2,
-                          isLiked: isLikedFood[0],
-                          onLikeToggle: () {
-                            toggleFavorite(
-                                0, 'food_1', isLikedFood[0], true); // 찜 API 호출
-                          },
-                        ),
-                        _buildFoodItem(
-                          context,
-                          '매콤쟁반짜장(2인)',
-                          'assets/images/platter_jjajangmyeon.jpg',
-                          '₩20,000 / 중국집',
-                          starCount: 1,
-                          isLiked: isLikedFood[1],
-                          onLikeToggle: () {
-                            toggleFavorite(
-                                1, 'food_2', isLikedFood[1], true); // 찜 API 호출
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildSection(context, '식당', widget.foodList),
                   SizedBox(height: 50),
-                  // Dessert Section Title
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      '카페',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 25,
-                        fontFamily: 'Yangjin',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Horizontal Scroll Dessert Items
-                  Container(
-                    height: 270,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      children: [
-                        _buildDessertItem(
-                          context,
-                          '딸기 눈꽃빙수',
-                          'assets/images/딸기 눈꽃빙수.jpg',
-                          '₩28,000 / GOGOSS COFFEE',
-                          starCount: 2,
-                          isLiked: isLikedFood[2],
-                          onLikeToggle: () {
-                            toggleFavorite(2, 'dessert_1', isLikedFood[2],
-                                false); // 찜 API 호출
-                          },
-                        ),
-                        _buildDessertItem(
-                          context,
-                          '딸기 쥬얼리 벨벳 밀크티',
-                          'assets/images/딸기 쥬얼리 벨벳 밀크티.jpg',
-                          '₩5,500 / 공차 아산순천향대점',
-                          starCount: 1,
-                          isLiked: isLikedFood[3],
-                          onLikeToggle: () {
-                            toggleFavorite(3, 'dessert_2', isLikedFood[3],
-                                false); // 찜 API 호출
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildSection(context, '카페', widget.dessertList),
                   SizedBox(height: 20),
                 ],
               ),
@@ -385,20 +290,38 @@ class LobyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFoodItem(BuildContext context, String name, String imagePath,
-      String price,
-      {bool isNetwork = false, int starCount = 0, bool isLiked = false, required VoidCallback onLikeToggle}) {
+  Widget _buildSection(BuildContext context, String title, List<Map<String, dynamic>> itemList) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(title, style: TextStyle(color: Colors.black, fontSize: 25, fontFamily: 'Yangjin')),
+        ),
+        SizedBox(height: 10),
+        Container(
+          height: 270,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            children: itemList.map((item) => _buildItemCard(context, item)).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemCard(BuildContext context, Map<String, dynamic> item) {
     return GestureDetector(
       onTap: () {
-        // 클릭 시 상세 화면으로 이동
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => MenuDetailInfo(
-              itemName: name,
-              imagePath: imagePath,
-              description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
-              price: price,
+              itemName: item['menuName'],
+              imagePath: item['thumbnail'],
+              description: item['reviewContent'],
+              price: item['price'],
             ),
           ),
         );
@@ -424,18 +347,9 @@ class LobyPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                    child: isNetwork
-                        ? Image.network(
-                      imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                        : Image.asset(
-                      imagePath,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                    child: Image.network(
+                      item['thumbnail'] ?? '',
                       width: double.infinity,
                       fit: BoxFit.cover,
                     ),
@@ -444,22 +358,15 @@ class LobyPage extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Yangjin',
-                    ),
+                    item['menuName'] ?? '',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Text(
-                    price,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontFamily: 'Yangjin',
-                    ),
+                    item['price'] ?? '',
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
               ],
@@ -469,181 +376,18 @@ class LobyPage extends StatelessWidget {
               left: 8,
               child: Row(
                 children: List.generate(
-                  starCount,
-                      (index) =>
-                      Container(
-                        padding: EdgeInsets.all(1), // 패딩 크기 줄임
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.star,
-                          color: Color(0xFFDAA520),
-                          size: 20, // 아이콘 크기 줄임
-                        ),
-                      ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: EdgeInsets.all(0), // 패딩 크기 줄임
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? Colors.red : Colors.grey,
-                    size: 22, // 아이콘 크기 줄임
+                  item['stars'] ?? 0,
+                      (index) => Icon(
+                    Icons.star,
+                    color: Color(0xFFDAA520),
+                    size: 20,
                   ),
-                  onPressed: onLikeToggle, // 찜 상태 변경 함수 호출
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-
-  Widget _buildDessertItem(BuildContext context, String name, String imagePath,
-      String price,
-      {bool isNetwork = false, int starCount = 0, bool isLiked = false, required VoidCallback onLikeToggle}) {
-    return GestureDetector(
-      onTap: () {
-        // 클릭 시 상세 화면으로 이동
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MenuDetailInfo(
-              itemName: name,
-              imagePath: imagePath,
-              description: '이 음식은 정말 맛있습니다! 추천드려요.', // 상세 설명
-              price: price,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        width: 200,
-        margin: EdgeInsets.only(right: 16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                    child: isNetwork
-                        ? Image.network(
-                      imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                        : Image.asset(
-                      imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Yangjin',
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Text(
-                    price,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontFamily: 'Yangjin',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 80,
-              left: 8,
-              child: Row(
-                children: List.generate(
-                  starCount,
-                      (index) =>
-                      Container(
-                        padding: EdgeInsets.all(1), // 패딩 크기 줄임
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.star,
-                          color: Color(0xFFDAA520),
-                          size: 20, // 아이콘 크기 줄임
-                        ),
-                      ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: EdgeInsets.all(0), // 패딩 크기 줄임
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? Colors.red : Colors.grey,
-                    size: 22, // 아이콘 크기 줄임
-                  ),
-                  onPressed: onLikeToggle, // 찜 상태 변경 함수 호출
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-  class AccountScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('계정 정보 화면'),
     );
   }
 }
