@@ -364,14 +364,40 @@ class _WriteReviewState extends State<WriteReview> {
                         scrollDirection: Axis.horizontal,
                         itemCount: _images.length,
                         itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Image.file(
-                              File(_images[index]!.path),
-                              height: 200,
-                              width: 200,
-                              fit: BoxFit.cover,
-                            ),
+                          return Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Image.file(
+                                  File(_images[index]!.path),
+                                  height: 200,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _images.removeAt(index); // 이미지 삭제
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),

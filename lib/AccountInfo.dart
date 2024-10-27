@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Secure Storage 패키지 추가
-import 'Account/Login.dart';  // 로그인 페이지로 이동하기 위한 import
+import 'Account/Login.dart'; // 로그인 페이지로 이동하기 위한 import
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AccountInfo extends StatefulWidget {
   @override
@@ -12,6 +13,53 @@ class AccountInfo extends StatefulWidget {
 class _AccountInfoState extends State<AccountInfo> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+  String _nickname = '...'; // 사용자 닉네임 초기값
+  String _realname = '...'; // 사용자 이름 초기값
+  String _email = '...'; // 사용자 이메일 초기값
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchAccountInfo(); // 초기 상태에서 계정 정보를 가져옴
+    });
+  }
+
+  // 계정 정보를 서버로부터 가져오는 함수
+  Future<void> _fetchAccountInfo() async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("로그인 정보가 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/users/info'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          _nickname = data['nickname'] ?? '닉네임 없음';
+          _realname = data['realname'] ?? '이름 없음';
+          _email = data['email'] ?? '이메일 없음';
+        });
+      } else if (response.statusCode == 401) {
+        print('권한이 없습니다. 로그아웃 필요.');
+        _handleSignOut();
+      } else {
+        print('계정 정보를 가져오지 못했습니다. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('계정 정보를 가져오는 중 오류 발생: $error');
+    }
+  }
 
   // 로그아웃 처리 함수
   Future<void> _handleSignOut() async {
@@ -97,27 +145,27 @@ class _AccountInfoState extends State<AccountInfo> {
             ),
             SizedBox(height: 20),
             Text(
-              '사용자 닉네임: [사용자 닉네임]',
+              '사용자 닉네임: $_nickname',
               style: TextStyle(
                 fontFamily: 'Yangjin',
                 fontSize: 18,
-                color: Colors.black, // 검은색 텍스트
+                color: Colors.black,
               ),
             ),
             Text(
-              '사용자 이름: [사용자 이름]',
+              '사용자 이름: $_realname',
               style: TextStyle(
                 fontFamily: 'Yangjin',
                 fontSize: 18,
-                color: Colors.black, // 검은색 텍스트
+                color: Colors.black,
               ),
             ),
             Text(
-              '이메일: [사용자 이메일]',
+              '이메일: $_email',
               style: TextStyle(
                 fontFamily: 'Yangjin',
                 fontSize: 18,
-                color: Colors.black, // 검은색 텍스트
+                color: Colors.black,
               ),
             ),
             SizedBox(height: 30),
@@ -149,7 +197,7 @@ class _AccountInfoState extends State<AccountInfo> {
                   style: TextStyle(
                     fontFamily: 'Yangjin',
                     fontSize: 14,
-                    color: Colors.black, // 검은색 텍스트
+                    color: Colors.black,
                     decoration: TextDecoration.underline,
                   ),
                 ),
