@@ -1,7 +1,141 @@
 import 'package:flutter/material.dart';
-import 'MenuDetailInfo.dart'; // MenuDetailInfo 페이지 import
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'ReviewDetailPage.dart';
 
-class FavoriteList extends StatelessWidget {
+class FavoriteList extends StatefulWidget {
+  final List<Map<String, dynamic>> favoriteItems;
+
+  FavoriteList({required this.favoriteItems});
+
+  @override
+  _FavoriteListState createState() => _FavoriteListState();
+}
+
+class _FavoriteListState extends State<FavoriteList> {
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  List<Map<String, dynamic>> _favoriteItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _favoriteItems = widget.favoriteItems; // 초기 전달된 데이터를 먼저 적용
+    _fetchFavoriteList(); // 서버에서 최신 데이터 가져오기
+  }
+
+  @override
+  void didUpdateWidget(covariant FavoriteList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.favoriteItems != widget.favoriteItems) {
+      setState(() {
+        _favoriteItems = widget.favoriteItems; // 새로운 데이터로 업데이트
+      });
+    }
+  }
+
+  Future<void> _fetchFavoriteList() async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/favorites/list'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          _favoriteItems = List<Map<String, dynamic>>.from(data);
+        });
+        print("찜 목록 데이터 불러오기 성공: $_favoriteItems");
+      } else {
+        print('찜 목록 가져오기 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('찜 목록 데이터를 가져오는 중 오류 발생: $error');
+    }
+  }
+
+  Future<void> _fetchReviewDetail(int itemId) async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/reviews/$itemId'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReviewDetailPage(
+              storeName: data['storeName'],
+              reviewTitle: data['reviewTitle'],
+              menuName: data['menuName'],
+              reviewContent: data['reviewContent'],
+              reviewDateTime: data['reviewDateTime'],
+              price: data['price'],
+              stars: data['stars'],
+              images: List<String>.from(data['images']),
+            ),
+          ),
+        );
+      } else {
+        print('리뷰 상세 정보 가져오기 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('리뷰 상세 정보 가져오는 중 오류 발생: $error');
+    }
+  }
+
+  Future<void> _removeFavoriteItem(int itemId) async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/api/favorites/remove'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'reviewId': itemId}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _favoriteItems.removeWhere((item) => item['id'] == itemId);
+        });
+        print('찜 항목 삭제 성공: $itemId');
+      } else {
+        print('찜 항목 삭제 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('찜 항목 삭제 중 오류 발생: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -9,7 +143,6 @@ class FavoriteList extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with "순슐랭가이드" and Icon (same as in Home screen)
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
@@ -29,7 +162,7 @@ class FavoriteList extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.asset(
-                          'assets/images/swapped_dishs.png', // 아이콘 경로
+                          'assets/images/swapped_dishs.png',
                           width: 75,
                           height: 50,
                           fit: BoxFit.cover,
@@ -53,27 +186,34 @@ class FavoriteList extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            // Favorite Items List
             Expanded(
-              child: Padding(
+              child: _favoriteItems.isEmpty
+                  ? Center(
+                child: Text(
+                  "저장된 리뷰가 없습니다.",
+                  style: TextStyle(fontSize: 18),
+                ),
+              )
+                  : Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListView(
-                  children: [
-                    _buildFavoriteItem(
+                child: ListView.builder(
+                  itemCount: _favoriteItems.length,
+                  itemBuilder: (context, index) {
+                    final item = _favoriteItems[index];
+                    return _buildFavoriteItem(
                       context,
-                      '양념치킨',
-                      'assets/images/seasoned_chicken.jpg',
-                      '₩18,000 / 멕켄치킨',
-                      '정말 맛있어요! 추천드립니다.', // 상세 설명 추가
-                    ),
-                    _buildFavoriteItem(
-                      context,
-                      '딸기 눈꽃빙수',
-                      'assets/images/딸기 눈꽃빙수.jpg',
-                      '₩28,000 / GOGOSS COFFEE',
-                      '달콤하고 시원해요!', // 상세 설명 추가
-                    ),
-                  ],
+                      item['reviewTitle'] ?? '리뷰 제목',
+                      item['thumbnail'] ?? '',
+                      item['price']?.toString() ?? '₩0',
+                      item['reviewContent'] ?? '내용 없음',
+                      item['id'],
+                      item['storeName'] ?? '식당 이름',
+                      item['menuName'] ?? '메뉴 이름',
+                      item['reviewDateTime'] ?? '',
+                      item['stars'] ?? 0,
+                      List<String>.from(item['images'] ?? []), // 여러 이미지 경로 추가
+                    );
+                  },
                 ),
               ),
             ),
@@ -83,21 +223,22 @@ class FavoriteList extends StatelessWidget {
     );
   }
 
-  Widget _buildFavoriteItem(BuildContext context, String name, String imagePath, String price, String description) {
+  Widget _buildFavoriteItem(
+      BuildContext context,
+      String name,
+      String imagePath,
+      String price,
+      String description,
+      int itemId,
+      String storeName,
+      String menuName,
+      String reviewDateTime,
+      int stars,
+      List<String> images,
+      ) {
     return GestureDetector(
       onTap: () {
-        // 클릭 시 해당 메뉴의 상세 페이지로 이동
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MenuDetailInfo(
-              itemName: name,
-              imagePath: imagePath,
-              description: description,
-              price: price,
-            ),
-          ),
-        );
+        _fetchReviewDetail(itemId); // 클릭 시 상세 정보를 서버에서 가져오는 함수 호출
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 16.0),
@@ -119,7 +260,25 @@ class FavoriteList extends StatelessWidget {
                 topLeft: Radius.circular(12),
                 bottomLeft: Radius.circular(12),
               ),
-              child: Image.asset(
+              child: imagePath.startsWith('http')
+                  ? Image.network(
+                imagePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey[300],
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey[600],
+                    ),
+                  );
+                },
+              )
+                  : Image.asset(
                 imagePath,
                 width: 100,
                 height: 100,
@@ -155,7 +314,7 @@ class FavoriteList extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () {
-                print('$name 삭제 클릭됨');
+                _removeFavoriteItem(itemId);
               },
             ),
           ],

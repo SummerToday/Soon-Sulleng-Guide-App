@@ -5,10 +5,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'MenuDetailInfo.dart';
 import 'ReviewDetailPage.dart';
-import 'Favoritelist.dart';
 import 'ReviewList.dart';
 import 'WriteReview.dart';
 import '../AccountInfo.dart';
+import 'FavoriteList.dart';
 
 class Loby extends StatefulWidget {
   @override
@@ -25,6 +25,7 @@ class _LobyState extends State<Loby> {
   DateTime? _lastBackPressed;
 
   List<Widget> _pages = [];
+  List<Map<String, dynamic>> _favoriteItems = [];
 
   @override
   void initState() {
@@ -76,7 +77,7 @@ class _LobyState extends State<Loby> {
             ),
             ReviewList(reviews: _foodList + _dessertList), // 여기서 리뷰 데이터 전달
             WriteReview(),
-            FavoriteList(),
+            FavoriteList(favoriteItems: _favoriteItems),
             AccountInfo(),
           ];
 
@@ -94,6 +95,58 @@ class _LobyState extends State<Loby> {
       });
     }
   }
+
+  Future<void> _fetchFavoriteList() async {
+    setState(() {
+      _isLoading = true;
+      print("찜 목록 데이터 가져오기 시작 - 로딩 상태 true로 설정");
+    });
+
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다. - 로딩 상태 false로 설정");
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/favorites/list'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Response Status Code: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        print("찜 목록 데이터 가져오기 성공 - 데이터 크기: ${data.length}");
+
+        setState(() {
+          _favoriteItems = List<Map<String, dynamic>>.from(data);
+          print("찜 목록 아이템 수: ${_favoriteItems.length}");
+          _pages[3] = FavoriteList(favoriteItems: _favoriteItems); // 최신 데이터를 반영하여 FavoriteList 페이지 재설정
+          _isLoading = false;
+          print("FavoriteList 페이지 업데이트 및 로딩 상태 false로 설정");
+        });
+      } else {
+        print('찜 목록 가져오기 실패. 상태 코드: ${response.statusCode}');
+        print('응답 내용: ${response.body}');
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      print('찜 목록 데이터를 가져오는 중 오류 발생: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
 
   Future<void> _fetchFavoriteStatus() async {
     try {
@@ -151,6 +204,10 @@ class _LobyState extends State<Loby> {
         setState(() {
           favoriteStatus[itemId] = !isFavorite;
         });
+
+        // 찜 추가/삭제 성공 시 FavoriteList 업데이트
+        await _fetchFavoriteList();  // 최신 찜 목록 불러오기 후 FavoriteList 페이지 업데이트
+
         print(isFavorite ? '찜 삭제 성공' : '찜 추가 성공');
       } else {
         print('찜 처리 실패. 상태 코드: ${response.statusCode}');
@@ -160,23 +217,25 @@ class _LobyState extends State<Loby> {
     }
   }
 
+
   void _onItemTapped(int index) async {
     if (index == 0) {
-      // 홈 화면일 경우 기존 데이터 재조회
       await _fetchReviewData();
       await _fetchFavoriteStatus();
     } else if (index == 1) {
-      // 리뷰 목록 탭을 클릭한 경우 리뷰 목록 데이터를 가져옴
       await _fetchAllReviews();
+    } else if (index == 3) {
+      await _fetchFavoriteList();
     } else {
-      // 나머지 탭 클릭 시 찜 상태 재조회
       await _fetchFavoriteStatus();
     }
 
     setState(() {
       _selectedIndex = index;
     });
+
   }
+
 
   Future<void> _fetchAllReviews() async {
     setState(() {
