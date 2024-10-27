@@ -71,14 +71,15 @@ class _LobyState extends State<Loby> {
               foodList: _foodList,
               dessertList: _dessertList,
               favoriteStatus: favoriteStatus,
-              onToggleFavorite: _toggleFavorite, // 찜 상태 업데이트를 위한 함수 전달
+              onToggleFavorite: _toggleFavorite,
               isLoading: _isLoading,
             ),
-            ReviewList(),
+            ReviewList(reviews: _foodList + _dessertList), // 여기서 리뷰 데이터 전달
             WriteReview(),
             FavoriteList(),
             AccountInfo(),
           ];
+
         });
       } else {
         print('Failed to load data. 상태 코드: ${response.statusCode}');
@@ -159,18 +160,69 @@ class _LobyState extends State<Loby> {
     }
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
     if (index == 0) {
-      _fetchReviewData();
-      _fetchFavoriteStatus();
+      // 홈 화면일 경우 기존 데이터 재조회
+      await _fetchReviewData();
+      await _fetchFavoriteStatus();
+    } else if (index == 1) {
+      // 리뷰 목록 탭을 클릭한 경우 리뷰 목록 데이터를 가져옴
+      await _fetchAllReviews();
     } else {
-      _fetchFavoriteStatus();
+      // 나머지 탭 클릭 시 찜 상태 재조회
+      await _fetchFavoriteStatus();
     }
 
     setState(() {
       _selectedIndex = index;
     });
   }
+
+  Future<void> _fetchAllReviews() async {
+    setState(() {
+      _isLoading = true; // 데이터를 가져오기 전에 로딩 상태를 true로 설정
+    });
+
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        setState(() {
+          _isLoading = false; // 액세스 토큰이 없을 때 로딩 상태를 false로 설정
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/reviews/allReviews'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+
+        setState(() {
+          _pages[1] = ReviewList(reviews: List<Map<String, dynamic>>.from(data)); // 최신 리뷰 데이터를 ReviewList 페이지에 전달
+          _isLoading = false; // 로딩 완료
+        });
+      } else {
+        print('리뷰 목록을 가져오는 데 실패했습니다. 상태 코드: ${response.statusCode}');
+        setState(() {
+          _isLoading = false; // 상태 코드가 200이 아닐 때 로딩 상태를 false로 설정
+        });
+      }
+    } catch (error) {
+      print('리뷰 목록을 가져오는 중 오류 발생: $error');
+      setState(() {
+        _isLoading = false; // 오류 발생 시 로딩 상태를 false로 설정
+      });
+    }
+  }
+
+
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
@@ -390,6 +442,47 @@ class _LobyPageState extends State<LobyPage> {
       ],
     );
   }
+  Future<void> _fetchReviewDetail(int itemId) async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/reviews/$itemId'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReviewDetailPage(
+              storeName: data['storeName'],
+              reviewTitle: data['reviewTitle'],
+              menuName: data['menuName'],
+              reviewContent: data['reviewContent'],
+              reviewDateTime: data['reviewDateTime'],
+              price: data['price'],
+              stars: data['stars'],
+              images: List<String>.from(data['images']),
+            ),
+          ),
+        );
+      } else {
+        print('리뷰 상세 정보 가져오기 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('리뷰 상세 정보 가져오는 중 오류 발생: $error');
+    }
+  }
 
   Widget _buildItemCard(BuildContext context, Map<String, dynamic> item) {
     int itemId = item['id'];
@@ -397,17 +490,7 @@ class _LobyPageState extends State<LobyPage> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MenuDetailInfo(
-              itemName: item['menuName'],
-              imagePath: item['thumbnail'],
-              description: item['reviewContent'],
-              price: item['price'],
-            ),
-          ),
-        );
+        _fetchReviewDetail(itemId); // 클릭 시 리뷰 상세 정보를 가져오는 함수 호출
       },
       child: Container(
         width: 200,
@@ -504,4 +587,5 @@ class _LobyPageState extends State<LobyPage> {
       ),
     );
   }
+
 }

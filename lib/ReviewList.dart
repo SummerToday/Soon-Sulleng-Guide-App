@@ -1,29 +1,10 @@
 import 'package:flutter/material.dart';
-import 'ReviewDetailPage.dart'; // 리뷰 상세 페이지 import
+import 'ReviewDetailPage.dart';
 
 class ReviewList extends StatelessWidget {
-  final List<Map<String, String>> _reviews = [
-    {
-      'title': '양념치킨 리뷰',
-      'description': '정말 맛있어요! 추천드립니다.',
-      'image': 'assets/images/seasoned_chicken.jpg'
-    },
-    {
-      'title': '매콤쟁반짜장 리뷰',
-      'description': '약간 매콤하지만 맛있어요.',
-      'image': 'assets/images/platter_jjajangmyeon.jpg'
-    },
-    {
-      'title': '딸기 눈꽃빙수 리뷰',
-      'description': '달콤하고 시원해요!',
-      'image': 'assets/images/딸기 눈꽃빙수.jpg'
-    },
-    {
-      'title': '딸기 쥬얼리 벨벳 밀크티 리뷰',
-      'description': '부드럽고 맛있는 밀크티!',
-      'image': 'assets/images/딸기 쥬얼리 벨벳 밀크티.jpg'
-    },
-  ];
+  final List<Map<String, dynamic>> reviews;
+
+  ReviewList({required this.reviews});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +13,6 @@ class ReviewList extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with "순슐랭가이드" and Icon
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
@@ -71,59 +51,68 @@ class ReviewList extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            // Review List Section
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListView.builder(
-                  itemCount: _reviews.length,
-                  itemBuilder: (context, index) {
-                    final review = _reviews[index];
-                    return GestureDetector(
-                      onTap: () {
-                        // 리뷰 항목을 클릭했을 때 상세 페이지로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReviewDetailPage(
-                              itemName: review['title']!,
-                              imagePath: review['image']!,
-                              description: review['description']!,
-                              price: '', // 가격 정보를 전달하지 않음 (리뷰에는 필요 없다고 가정)
-                            ),
+              child: ListView.builder(
+                itemCount: reviews.length,
+                itemBuilder: (context, index) {
+                  final review = reviews[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReviewDetailPage(
+                            storeName: review['storeName'],
+                            reviewTitle: review['reviewTitle'],
+                            menuName: review['menuName'],
+                            reviewContent: review['reviewContent'],
+                            reviewDateTime: review['reviewDateTime'],
+                            price: review['price'],
+                            stars: review['stars'],
+                            images: [review['thumbnail']],
                           ),
-                        );
-                      },
-                      child: Card(
-                        margin: EdgeInsets.symmetric(vertical: 10),
-                        child: ListTile(
-                          leading: Image.asset(
-                            review['image']!,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text(
-                            review['title']!,
-                            style: TextStyle(
-                              fontFamily: 'Yangjin',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(
-                            review['description']!,
-                            style: TextStyle(
-                              fontFamily: 'Yangjin',
-                              color: Colors.grey,
-                            ),
-                          ),
-                          trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
                         ),
+                      );
+                    },
+                    child: Card(
+                      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      child: ListTile(
+                        leading: review['thumbnail'] != null && review['thumbnail'] != ''
+                            ? Image.network(
+                          review['thumbnail'],
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        )
+                            : Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        title: Text(
+                          review['reviewTitle'] ?? '',
+                          style: TextStyle(
+                            fontFamily: 'Yangjin',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          review['reviewContent'] ?? '',
+                          style: TextStyle(
+                            fontFamily: 'Yangjin',
+                            color: Colors.grey,
+                          ),
+                        ),
+                        trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
