@@ -18,6 +18,7 @@ class Loby extends StatefulWidget {
 class _LobyState extends State<Loby> {
   List<Map<String, dynamic>> _foodList = [];
   List<Map<String, dynamic>> _dessertList = [];
+  Map<int, bool> favoriteStatus = {};
   bool _isLoading = true;
 
   int _selectedIndex = 0;
@@ -29,6 +30,7 @@ class _LobyState extends State<Loby> {
   void initState() {
     super.initState();
     _fetchReviewData();
+    _fetchFavoriteStatus(); // 초기 화면 진입 시 찜 상태 확인
   }
 
   Future<void> _fetchReviewData() async {
@@ -54,9 +56,7 @@ class _LobyState extends State<Loby> {
         },
       );
 
-      // 응답 상태 코드 로그 출력
       print('Response Status Code: ${response.statusCode}');
-      // 응답 본문 로그 출력
       print('Response Body: ${utf8.decode(response.bodyBytes)}');
 
       if (response.statusCode == 200) {
@@ -67,7 +67,13 @@ class _LobyState extends State<Loby> {
           _dessertList = List<Map<String, dynamic>>.from(data["카페"] ?? []);
           _isLoading = false; // 로딩 완료
           _pages = [
-            LobyPage(foodList: _foodList, dessertList: _dessertList, isLoading: _isLoading),
+            LobyPage(
+              foodList: _foodList,
+              dessertList: _dessertList,
+              favoriteStatus: favoriteStatus,
+              onToggleFavorite: _toggleFavorite, // 찜 상태 업데이트를 위한 함수 전달
+              isLoading: _isLoading,
+            ),
             ReviewList(),
             WriteReview(),
             FavoriteList(),
@@ -88,10 +94,77 @@ class _LobyState extends State<Loby> {
     }
   }
 
+  Future<void> _fetchFavoriteStatus() async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/favorites/status'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+
+        setState(() {
+          favoriteStatus = data.map((key, value) => MapEntry(int.parse(key), value));
+        });
+
+        print('찜 상태 가져오기 성공: $data');
+      } else {
+        print('찜 상태 가져오기 실패. 상태 코드: ${response.statusCode}');
+        print('응답 내용: ${response.body}');
+      }
+    } catch (error, stackTrace) {
+      print('Error fetching favorite status: $error');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
+  void _toggleFavorite(int itemId, bool isFavorite) async {
+    String endpoint = isFavorite ? '/remove' : '/add';
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/api/favorites$endpoint'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'reviewId': itemId}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          favoriteStatus[itemId] = !isFavorite;
+        });
+        print(isFavorite ? '찜 삭제 성공' : '찜 추가 성공');
+      } else {
+        print('찜 처리 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error toggling favorite: $error');
+    }
+  }
+
   void _onItemTapped(int index) {
     if (index == 0) {
-      // 홈 화면이 선택될 때마다 최신 데이터를 가져오기 위해 API 호출
       _fetchReviewData();
+      _fetchFavoriteStatus();
+    } else {
+      _fetchFavoriteStatus();
     }
 
     setState(() {
@@ -183,9 +256,16 @@ class _LobyState extends State<Loby> {
 class LobyPage extends StatefulWidget {
   final List<Map<String, dynamic>> foodList;
   final List<Map<String, dynamic>> dessertList;
+  final Map<int, bool> favoriteStatus;
   final bool isLoading;
+  final Function(int, bool) onToggleFavorite;
 
-  LobyPage({required this.foodList, required this.dessertList, required this.isLoading});
+  LobyPage(
+      {required this.foodList,
+        required this.dessertList,
+        required this.favoriteStatus,
+        required this.isLoading,
+        required this.onToggleFavorite});
 
   @override
   _LobyPageState createState() => _LobyPageState();
@@ -312,6 +392,9 @@ class _LobyPageState extends State<LobyPage> {
   }
 
   Widget _buildItemCard(BuildContext context, Map<String, dynamic> item) {
+    int itemId = item['id'];
+    bool isFavorite = widget.favoriteStatus[itemId] ?? false;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -365,7 +448,7 @@ class _LobyPageState extends State<LobyPage> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Text(
-                    item['price'] ?? '',
+                    '${item['price']} / ${item['storeName']}',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
@@ -374,13 +457,44 @@ class _LobyPageState extends State<LobyPage> {
             Positioned(
               bottom: 80,
               left: 8,
-              child: Row(
-                children: List.generate(
-                  item['stars'] ?? 0,
-                      (index) => Icon(
-                    Icons.star,
-                    color: Color(0xFFDAA520),
-                    size: 20,
+              child: Container(
+                padding: EdgeInsets.all(4.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: List.generate(
+                    item['stars'] ?? 0,
+                        (index) => Icon(
+                      Icons.star,
+                      color: Color(0xFFDAA520),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    widget.onToggleFavorite(itemId, isFavorite);
+                    widget.favoriteStatus[itemId] = !isFavorite; // 바로 반영되도록 수정
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: Colors.red,
+                    size: 30,
                   ),
                 ),
               ),
