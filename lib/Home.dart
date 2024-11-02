@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'MenuDetailInfo.dart';
 import 'ReviewDetailPage.dart';
 import 'ReviewList.dart';
+import 'SearchPage.dart';
 import 'WriteReview.dart';
 import '../AccountInfo.dart';
 import 'FavoriteList.dart';
@@ -382,7 +383,54 @@ class LobyPage extends StatefulWidget {
   _LobyPageState createState() => _LobyPageState();
 }
 
+
+
 class _LobyPageState extends State<LobyPage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  // 검색 기능을 위한 함수
+  Future<void> _performSearch(String keyword) async {
+    try {
+      String? accessToken = await secureStorage.read(key: 'accessToken');
+      if (accessToken == null) {
+        print("Access Token이 없습니다.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/search/list?keyword=$keyword'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        List<Map<String, dynamic>> searchResults = List<Map<String, dynamic>>.from(data);
+
+        // 데이터 가져온 후 각 항목 로그로 출력
+        print('검색 결과 개수: ${searchResults.length}');
+        for (var result in searchResults) {
+          print('리뷰 데이터: $result');
+        }
+
+        // SearchPage로 이동하면서 검색 결과 전달
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchPage(searchKeyword: keyword), // 검색 키워드만 전달
+          ),
+        );
+      } else {
+        print('검색 결과 가져오기 실패. 상태 코드: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('검색 결과 가져오는 중 오류 발생: $error');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -434,12 +482,13 @@ class _LobyPageState extends State<LobyPage> {
                       IconButton(
                         icon: Icon(Icons.search, color: Colors.grey),
                         onPressed: () {
-                          print('검색 버튼 클릭됨');
+                          _performSearch(_searchController.text); // 검색 버튼 클릭 시 API 호출
                         },
                       ),
                       SizedBox(width: 8),
                       Expanded(
                         child: TextField(
+                          controller: _searchController, // TextEditingController 연결
                           style: TextStyle(fontFamily: 'Yangjin', color: Colors.grey),
                           decoration: InputDecoration(
                             border: InputBorder.none,

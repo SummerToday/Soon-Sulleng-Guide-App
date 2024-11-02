@@ -126,7 +126,7 @@ class ReviewList extends StatelessWidget {
                           ),
                         ),
                         title: Text(
-                          review['reviewTitle'] ?? '',
+                          review['menuName'] ?? '', // 메뉴 이름을 제목으로 표시
                           style: TextStyle(
                             fontFamily: 'Yangjin',
                             fontSize: 18,
