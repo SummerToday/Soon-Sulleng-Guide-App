@@ -65,8 +65,13 @@ class _LobyState extends State<Loby> {
         final data = json.decode(utf8.decode(response.bodyBytes));
 
         setState(() {
-          _foodList = List<Map<String, dynamic>>.from(data["식당"] ?? []);
-          _dessertList = List<Map<String, dynamic>>.from(data["카페"] ?? []);
+          // reviewDateTime 필드를 기준으로 내림차순 정렬
+          _foodList = List<Map<String, dynamic>>.from(data["식당"] ?? [])
+            ..sort((a, b) => b['reviewDateTime'].compareTo(a['reviewDateTime']));
+
+          _dessertList = List<Map<String, dynamic>>.from(data["카페"] ?? [])
+            ..sort((a, b) => b['reviewDateTime'].compareTo(a['reviewDateTime']));
+
           _isLoading = false; // 로딩 완료
           _pages = [
             LobyPage(
@@ -81,7 +86,6 @@ class _LobyState extends State<Loby> {
             FavoriteList(favoriteItems: _favoriteItems),
             AccountInfo(),
           ];
-
         });
       } else {
         print('Failed to load data. 상태 코드: ${response.statusCode}');
@@ -632,7 +636,7 @@ class _LobyPageState extends State<LobyPage> {
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    item['menuName'] ?? '',
+                    item['reviewTitle'] ?? '',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
